@@ -1,1 +1,55 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap");
+
 @import "tailwindcss";
+
+/* ✅ Define custom design tokens in Tailwind v4 */
+@theme {
+  --color-primary: #f7fcf7;
+  --color-secondary: #e8f2e8;
+  --color-green-100: #4c994c;
+  --color-green-200: #337033;
+  --color-text: #212529;
+  --color-text-light: #6c757d;
+  --color-border: #819ab4d0;
+  --color-dark: #0f0d23;
+
+  --font-family-base: "DM Sans", sans-serif;
+  --font-family-heading: "Bebas Neue", cursive;
+
+  --breakpoint-xs: 480px;
+}
+
+/* ✅ Global styles */
+@layer base {
+  body {
+    font-family: var(--font-family-base);
+    background: var(--color-primary);
+    color: var(--color-text);
+  }
+}
+
+/* ✅ Reusable component styles */
+@layer components {
+  .wrapper {
+    @apply px-5 py-12 max-w-7xl mx-auto flex flex-col relative z-10;
+  }
+
+  .subHeading {
+    @apply text-4xl py-2 px-3 text-center font-medium;
+    font-family: var(--font-family-heading);
+    color: var(--color-green-100);
+  }
+}
+
+/* ✅ Custom utility for hiding scrollbar */
+@layer utilities {
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}

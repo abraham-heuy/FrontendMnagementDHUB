@@ -1,10 +1,15 @@
-import { FaBeer } from "react-icons/fa"
+import { Route, Routes } from "react-router-dom"
+import Landing from "./pages/Landing"
+import Students from "./pages/Students"
 
 const App = () => {
   return (
-    <h1 className="text-green-900 text-2xl">
-       Let's go for a <FaBeer />? 
-    </h1>
+    <>
+    <Routes>
+      <Route path="/" element={<Landing />} />
+      <Route path="/students" element={ <Students />} />
+    </Routes>
+    </>
   )
 }
 export default App
