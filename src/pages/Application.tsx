@@ -3,6 +3,8 @@ import InputField from "../components/InputField";
 import ReviewField from "../components/ReviewFiel";
 import { businessSections } from "../data/data";
 import Navigation from "../components/Navigation";
+import Modal from "../components/Modal";
+import modalImage from '../assets/images/Logo.png'
 
 
 const Application = () => {
@@ -23,6 +25,11 @@ const Application = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const steps = ["Personal Details", "Business Pitch", "Review & Submit"];
 
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
+  const [isFormValid, setIsFormValid]= useState(false)
+
+
 
   const handleChange = (key: string, value: string) => {
     setForm({ ...form, [key]: value })
@@ -30,7 +37,13 @@ const Application = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    
     console.log("submited data", form)
+    setIsModalOpen(true)
+    
+    setTimeout(() => {
+      setIsModalOpen(false)
+    }, 3000);
   }
 
   const nextStep = () => {
@@ -266,7 +279,15 @@ const Application = () => {
             )}
           </div>
         </div>
+
       </form>
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Success 🎉"
+        image={modalImage}
+        message="Your details have been submitted successfully!"
+      />
     </div>
   );
 }
