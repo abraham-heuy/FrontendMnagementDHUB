@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import  { useEffect, useState, useRef } from "react";
 import { FaChevronLeft, FaChevronRight, FaPlay } from "react-icons/fa";
 
 const slides = [
@@ -44,14 +44,6 @@ const Carousel = () => {
     setProgress(0);
   };
 
-  interface Slide {
-    id: number;
-    image: string;
-    title: string;
-    subtitle: string;
-    cta: string;
-    accent: string;
-  }
 
   const goToSlide = (index: number) => {
     setCurrent(index);

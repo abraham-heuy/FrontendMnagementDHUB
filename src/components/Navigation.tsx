@@ -26,22 +26,22 @@ const Navigation = () => {
     <nav
       className={`w-full fixed top-0 left-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "bg-white shadow-md py-2"
-          : "bg-primary/10 backdrop-blur-md py-1"
+          ? "bg-white/50 backdrop-blur-md shadow-md py-2"
+          : "bg-secondary shadow-sm py-2 backdrop-blur-md "
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div className="flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-2xl shadow-md backdrop-blur-md">
-            <img src={logo} alt="logo" className="w-10 h-10 object-contain" />
-            <span
-              className={`text-xl font-bold tracking-wide transition-colors duration-300 ${
-                scrolled ? "text-green-700" : "text-white"
+          <div className="flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-2xl shadow-2xs backdrop-blur-md">
+            <img src={logo} alt="logo" className="w-24 h-12 rounded-2xl object-contain" />
+            {/* <span
+              className={`text-sm font-bold tracking-wide transition-colors duration-300 ${
+                scrolled ? "text-green-700" : "text-dark"
               }`}
             >
               DeSIC
-            </span>
+            </span> */}
           </div>
 
           {/* Desktop menu */}
@@ -55,7 +55,7 @@ const Navigation = () => {
                         className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-colors ${
                           scrolled
                             ? "text-gray-700 hover:bg-green-50"
-                            : "text-white hover:bg-white/10"
+                            : "text-dark hover:bg-white/10"
                         }`}
                       >
                         <item.icon size={18} />
@@ -89,7 +89,7 @@ const Navigation = () => {
                       className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-colors ${
                         scrolled
                           ? "text-gray-700 hover:bg-green-50"
-                          : "text-white hover:bg-white/10"
+                          : "text-dark hover:bg-white/10"
                       }`}
                     >
                       <item.icon size={18} />
@@ -121,7 +121,7 @@ const Navigation = () => {
               className={`rounded-md p-2 ${
                 scrolled
                   ? "text-gray-700 bg-gray-100 hover:bg-gray-200"
-                  : "text-white bg-white/10 hover:bg-white/20"
+                  : "text-dark cursor-pointer bg-white/10 hover:bg-white/20"
               }`}
               onClick={() => setIsOpen(!isOpen)}
             >
@@ -150,7 +150,7 @@ const Navigation = () => {
                     <button
                       onClick={() => toggleDropdown(item.id)}
                       className={`flex justify-between items-center w-full text-left py-3 ${
-                        scrolled ? "text-gray-700" : "text-white"
+                        scrolled ? "text-gray-700" : "text-dark hover:bg-dark/20 px-2 rounded-md"
                       }`}
                     >
                       <span className="flex items-center gap-2">
@@ -173,7 +173,7 @@ const Navigation = () => {
                               className={`block py-2 pl-3 rounded-md ${
                                 scrolled
                                   ? "text-gray-600 hover:bg-green-50"
-                                  : "text-white/80 hover:bg-white/10"
+                                  : "text-dark/80 hover:bg-green-200/20"
                               }`}
                               onClick={() => setIsOpen(false)}
                             >
@@ -188,7 +188,7 @@ const Navigation = () => {
                   <Link
                     to={item.link}
                     className={`flex items-center gap-2 py-3 ${
-                      scrolled ? "text-gray-700" : "text-white"
+                      scrolled ? "text-gray-700" : "text-dark px-2 hover:bg-dark/20 rounded-md"
                     }`}
                     onClick={() => setIsOpen(false)}
                   >

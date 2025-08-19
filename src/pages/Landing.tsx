@@ -1,6 +1,6 @@
 import Navigation from "../components/Navigation";
-import Carousel from "../components/Carousel";
 import { FaCalendarAlt, FaUsers, FaArrowRight } from "react-icons/fa";
+import Hero from "../components/Hero";
 
 const Landing = () => {
   return (
@@ -8,7 +8,7 @@ const Landing = () => {
       {/* ===== Hero Section ===== */}
       <section className="relative h-full">
         <Navigation />
-        <Carousel />
+        <Hero />
       </section>
 
       {/* ===== Events Section ===== */}
