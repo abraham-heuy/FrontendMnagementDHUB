@@ -27,7 +27,7 @@ const Application = () => {
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
-  const [isFormValid, setIsFormValid]= useState(false)
+  // const [isFormValid, setIsFormValid]= useState(false)
 
 
 
@@ -37,7 +37,7 @@ const Application = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     console.log("submited data", form)
     setIsModalOpen(true)
     
@@ -69,30 +69,31 @@ const Application = () => {
       >
         {/* Form Header with Progress Indicator */}
         <div className="text-center">
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent mb-2">
+          <h1 className="text-2xl  text-start md:text-center md:text-4xl font-bold bg-green-200 bg-clip-text text-transparent mb-3">
             Startup Incubation Program
+            <hr  className="bg-green-200 my-2"/>
           </h1>
-          <p className="text-gray-600 mb-6">
+          <p className="text-gray-600 mb-6 text-sm text-start md:text-lg md:text-center">
             Apply for our entrepreneurship program and bring your idea to life
           </p>
 
           {/* Progress Bar */}
           <div className=" relative w-full">
 
-            <div className="absolute top-1/3 left-0 right-0 h-1 bg-gray-200 -translate-y-1/2" />
+            <div className="absolute top-1/5 md:top-1/3 left-0 right-0 h-1 bg-gray-200 -translate-y-1/2" />
 
             <div
-              className="absolute top-1/3  left-0 h-1 bg-green-200 -translate-y-1/2 transition-all duration-300"
+              className="absolute  top-1/5 sm:top-1/3   left-0 h-1 bg-green-200 -translate-y-1/2 transition-all duration-300"
               style={{
                 width: `${(currentStep / (steps.length - 1)) * 100}%`,
               }}
             />
             {/* Steps Indicators */}
-            <div className="relative flex justify-between w-full">
+            <div className="relative flex justify-between mt-12 w-full">
               {steps.map((step, index) => (
-                <div key={index} className="relative z-10 flex-col items-center">
+                <div key={index} className="relative z-10 flex-col  items-center">
                   <div
-                    className={`h-12 w-12 rounded-full flex items-center justify-center text-white font-bold transition-colors duration-300 ${currentStep >= index ? "bg-green-200" : "bg-gray-400 text-dark"}`}>
+                    className={`h-8 w-8 md:w-12 md:h-12 rounded-full flex items-center justify-center text-white font-bold transition-colors duration-300 ${currentStep >= index ? "bg-green-200" : "bg-gray-400 text-dark"}`}>
                     {index + 1}
                   </div>
                   <span
@@ -108,7 +109,7 @@ const Application = () => {
 
         {/* Step 1: Personal Details */}
         {currentStep === 0 && (
-          <div className="space-y-6">
+          <div className="space-y-6 mt-28">
             <div className="flex items-center mb-4">
               <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center text-white font-bold mr-3">1</div>
               <h2 className="text-xl font-bold text-dark font-serif italic">
