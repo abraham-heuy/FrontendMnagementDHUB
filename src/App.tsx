@@ -2,6 +2,7 @@ import { Route, Routes } from "react-router-dom"
 import Landing from "./pages/Landing"
 import Students from "./pages/Students"
 import Application from "./pages/Application"
+import Login from "./pages/Login"
 
 const App = () => {
   return (
@@ -9,6 +10,9 @@ const App = () => {
     <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/students" element={ <Students />} />
+      <Route path="/signIn" element={ <Login />} />
+      
+      
       <Route path="/apply" element={ <Application />} />
     </Routes>
     </>

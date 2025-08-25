@@ -13,32 +13,35 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, message, image })
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-50">
-      <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 relative">
+      <div className="bg-white mx-3 rounded-2xl shadow-xl max-w-md w-full p-6 relative flex flex-col items-center">
+        
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 text-green-600 hover:text-green-800 transition"
+        >
+          <FaX size={18} />
+        </button>
 
-        <h2 className="text-xl font-semibold text-green-600 mb-2 text-center">{title}</h2>
-        <hr className="w-1/2 mx-auto border-green-300" />
+        {/* Title */}
+        <h2 className="text-xl font-semibold text-green-600 mb-2 text-center">
+          {title}
+        </h2>
+        <hr className="w-1/2 mx-auto border-green-300 mb-4" />
 
-        <p className="mt-3 text-start text-green-700">{message}</p>
-
+        {/* Image Section */}
         {image && (
-          <div className="flex justify-center mt-4">
+          <div className="w-full flex justify-center mb-4">
             <img
               src={image}
               alt="modal illustration"
-              className="h-20 w-20 object-contain"
+              className="max-h-52 w-auto object-contain" // allows image to scale nicely
             />
           </div>
         )}
 
-        {/* Close Button */}
-        <div className="mt-6 flex justify-end">
-          <button
-            onClick={onClose}
-            className="absolute top-3 cursor-pointer right-3 px-3 py-1 bg-green-100 text-white rounded-md hover:bg-green-200 transition"
-          >
-            <FaX /> 
-          </button>
-        </div>
+        {/* Message */}
+        <p className="text-center text-green-700">{message}</p>
       </div>
     </div>
   );

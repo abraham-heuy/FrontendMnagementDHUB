@@ -51,7 +51,7 @@ const InputField: React.FC<InputFieldProps> = ({
           onChange={onChange}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          className={`w-full p-3 border ${focused ? 'border-emerald-400' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-300 transition-all`}
+          className={`w-full p-3 border ${focused ? 'border-green-200/20' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-100/40 transition-all`}
           required={required}
         />
       )}

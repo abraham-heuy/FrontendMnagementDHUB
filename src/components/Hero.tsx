@@ -1,6 +1,9 @@
+import { useNavigate } from "react-router-dom";
 import heroImg from "../assets/react.svg"; // replace with your image
 
 const Hero = () => {
+  const navigate=useNavigate()
+
   return (
     <section className="w-full h-full bg-secondary mt-20 py-16 px-6 md:px-12 lg:px-24 flex flex-col md:flex-row items-center justify-between">
       {/* Left Content */}
@@ -15,7 +18,9 @@ const Hero = () => {
 
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-          <button className="px-6 py-3 bg-green-700 text-white rounded-xl shadow-md hover:bg-green-800 transition">
+          <button 
+          onClick={()=> navigate("/apply")}
+          className="px-6 py-3 bg-green-700 text-white rounded-xl cursor-pointer shadow-md hover:bg-green-800 transition">
             Apply Now
           </button>
           <button className="px-6 py-3 border border-green-700 text-green-700 rounded-xl hover:bg-green-100 transition">

@@ -104,7 +104,7 @@ const Navigation = () => {
           {/* Desktop Sign In Button */}
           <div className="hidden md:flex">
             <Link
-              to="/signin"
+              to="/signIn"
               className={`ml-6 px-5 py-2 rounded-full font-medium transition-colors duration-300 ${
                 scrolled
                   ? "bg-green-600 text-white hover:bg-green-700"
@@ -202,7 +202,7 @@ const Navigation = () => {
             {/* Mobile Sign In Button */}
             <li className="pt-2">
               <Link
-                to="/signin"
+                to="/signIn"
                 className={`block w-full text-center px-5 py-2 rounded-full font-medium transition-colors duration-300 ${
                   scrolled
                     ? "bg-green-600 text-white hover:bg-green-700"

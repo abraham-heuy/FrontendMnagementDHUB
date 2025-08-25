@@ -38,9 +38,7 @@ const Application = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
-    console.log("submited data", form)
-    setIsModalOpen(true)
-    
+    console.log("submited data", form)    
     setTimeout(() => {
       setIsModalOpen(false)
     }, 3000);
