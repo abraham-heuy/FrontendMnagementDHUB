@@ -1,19 +1,19 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router-dom";
 import InputField from "../components/InputField";
 import Modal from "../components/Modal";
-import success from '../assets/images/success.png'
+import success from "../assets/images/success.png";
+import baseURL from "../lib/environment";
 
 const Login = () => {
-
   const navigate = useNavigate();
-  const [authMode, setAuthMode] = useState<"login" | "forgot">("login")
+  const [authMode, setAuthMode] = useState<"login" | "forgot">("login");
   const [form, setForm] = useState({
     email: "",
     password: "",
     newPassword: "",
-    confirmPassword: ""
-  })
+    confirmPassword: "",
+  });
 
   // loading state
   const [loading, setLoading] = useState(false);
@@ -21,30 +21,60 @@ const Login = () => {
   const [modalConfig, setModalConfig] = useState({
     title: "",
     message: "",
-  })
+  });
 
   const handleChange = (key: string, value: string) => {
-    setForm({ ...form, [key]: value })
-  }
+    setForm({ ...form, [key]: value });
+  };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      const response = await fetch(`${baseURL}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // ⬅️ ensures cookies (JWT) are stored
+        body: JSON.stringify({
+          email: form.email,
+          password: form.password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Login failed");
+      }
+
+      // ✅ success modal
       setModalConfig({
         title: "Success 🎉",
-        message: "Welcome back! You are now logged in.",
+        message: `Welcome back ${data.user.name}!`,
       });
       setIsModalOpen(true);
 
-      // ⏳ wait a moment so user sees modal, then navigate
+      // redirect based on role
       setTimeout(() => {
         setIsModalOpen(false);
-        navigate("/students");
+        if (data.user.role === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/students");
+        }
       }, 1500);
-    }, 1500);
+    } catch (error: any) {
+      setModalConfig({
+        title: "Error ⚠️",
+        message: error.message || "Something went wrong",
+      });
+      setIsModalOpen(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleForgot = (e: React.FormEvent) => {
@@ -65,7 +95,7 @@ const Login = () => {
         setAuthMode("login");
       }, 1500);
     }, 1500);
-  }
+  };
 
   return (
     <div className="bg-secondary min-h-screen w-full flex justify-center items-center">
@@ -74,14 +104,14 @@ const Login = () => {
           {authMode === "login" ? "Welcome Back 👋" : " Reset Your Password 🔑"}
         </h2>
 
-        {/* form  */}
+        {/* form */}
         {authMode === "login" ? (
           <form onSubmit={handleLogin} className=" space-y-4">
             <InputField
               label="Email"
               type="email"
               value={form.email}
-              onChange={(e) => handleChange('email', e.target.value)}
+              onChange={(e) => handleChange("email", e.target.value)}
               required
             />
 
@@ -90,7 +120,7 @@ const Login = () => {
               required
               type="password"
               value={form.password}
-              onChange={(e) => handleChange('password', e.target.value)}
+              onChange={(e) => handleChange("password", e.target.value)}
             />
             {/* button to submit */}
             <button
@@ -102,8 +132,9 @@ const Login = () => {
             </button>
 
             <p
-              onClick={() => setAuthMode('forgot')}
-              className=" underline italic text-xs text-end px-3 text-green-100 hover:text-green-200 cursor-pointer">
+              onClick={() => setAuthMode("forgot")}
+              className=" underline italic text-xs text-end px-3 text-green-100 hover:text-green-200 cursor-pointer"
+            >
               Forgot Password?
             </p>
           </form>
@@ -113,7 +144,7 @@ const Login = () => {
               label="Email"
               type="email"
               value={form.email}
-              onChange={(e) => handleChange('email', e.target.value)}
+              onChange={(e) => handleChange("email", e.target.value)}
               required
             />
 
@@ -121,7 +152,7 @@ const Login = () => {
               label="New Password"
               type="password"
               value={form.newPassword}
-              onChange={(e) => handleChange('newPassword', e.target.value)}
+              onChange={(e) => handleChange("newPassword", e.target.value)}
               required
             />
 
@@ -129,7 +160,7 @@ const Login = () => {
               label="Confirm Password"
               type="password"
               value={form.confirmPassword}
-              onChange={(e) => handleChange('confirmPassword', e.target.value)}
+              onChange={(e) => handleChange("confirmPassword", e.target.value)}
               required
             />
             {/* button to submit */}
@@ -142,8 +173,9 @@ const Login = () => {
             </button>
 
             <p
-              onClick={() => setAuthMode('login')}
-              className=" underline italic text-xs text-end px-3 text-green-100 hover:text-green-200 cursor-pointer">
+              onClick={() => setAuthMode("login")}
+              className=" underline italic text-xs text-end px-3 text-green-100 hover:text-green-200 cursor-pointer"
+            >
               Back to Login
             </p>
           </form>
@@ -151,14 +183,14 @@ const Login = () => {
 
         <Modal
           isOpen={isModalOpen}
-          onClose={()=>setIsModalOpen}
+          onClose={() => setIsModalOpen(false)}
           title={modalConfig.title}
           message={modalConfig.message}
           image={success}
         />
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Login
+export default Login;

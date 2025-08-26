@@ -35,13 +35,31 @@ const Application = () => {
     setForm({ ...form, [key]: value })
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    const api = "http://localhost:3000/api/v1/apply"
 
-    console.log("submited data", form)    
-    setTimeout(() => {
-      setIsModalOpen(false)
-    }, 3000);
+    try {
+      const res = await fetch(api, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(form)
+      });
+
+      const data = await res.json()
+
+      if (res.ok) {
+        setIsModalOpen(true);
+        console.log("Application saved",data)
+        console.log(data.message)
+      }else{
+        alert(data.message || "Error submitting application");
+      }
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   const nextStep = () => {
