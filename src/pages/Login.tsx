@@ -4,6 +4,7 @@ import InputField from "../components/InputField";
 import Modal from "../components/Modal";
 import success from "../assets/images/success.png";
 import baseURL from "../lib/environment";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/16/solid";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -22,6 +23,11 @@ const Login = () => {
     title: "",
     message: "",
   });
+
+  // password visibility states
+  const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (key: string, value: string) => {
     setForm({ ...form, [key]: value });
@@ -72,36 +78,72 @@ const Login = () => {
         message: error.message || "Something went wrong",
       });
       setIsModalOpen(true);
+      setTimeout(() => {
+        setIsModalOpen(false)
+      }, 2500);
     } finally {
       setLoading(false);
+      setTimeout(() => {
+        setIsModalOpen(false)
+      }, 2500);
     }
   };
 
-  const handleForgot = (e: React.FormEvent) => {
+  const handleForgot = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (form.newPassword !== form.confirmPassword) {
+      setModalConfig({
+        title: "Error ⚠️",
+        message: "Passwords do not match",
+      });
+      setIsModalOpen(true);
+      return;
+    }
+
     setLoading(true);
 
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      const response = await fetch(`${baseURL}/auth/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: form.email,
+          newPassword: form.newPassword,
+          confirmPassword: form.confirmPassword,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) throw new Error(data.message || "Password reset failed");
+
       setModalConfig({
         title: "Password Reset 🔑",
-        message: "Your password has been successfully reset.",
+        message: "Your password has been reset successfully.",
       });
       setIsModalOpen(true);
 
-      // close modal and go back to login form
       setTimeout(() => {
         setIsModalOpen(false);
         setAuthMode("login");
       }, 1500);
-    }, 1500);
+    } catch (error: any) {
+      setModalConfig({
+        title: "Error ⚠️",
+        message: error.message,
+      });
+      setIsModalOpen(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="bg-secondary min-h-screen w-full flex justify-center items-center">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 space-y-6 mx-3">
         <h2 className="text-2xl font-bold text-center text-green-100 ">
-          {authMode === "login" ? "Welcome Back 👋" : " Reset Your Password 🔑"}
+          {authMode === "login" ? "Welcome Back 👋" : "Reset Your Password 🔑"}
         </h2>
 
         {/* form */}
@@ -115,14 +157,30 @@ const Login = () => {
               required
             />
 
-            <InputField
-              label="Password"
-              required
-              type="password"
-              value={form.password}
-              onChange={(e) => handleChange("password", e.target.value)}
-            />
-            {/* button to submit */}
+            {/* Password with visibility toggle */}
+            <div className="relative">
+              <InputField
+                label="Password"
+                required
+                type={showPassword ? "text" : "password"}
+                value={form.password}
+                onChange={(e) => handleChange("password", e.target.value)}
+              />
+              <button
+                type="button"
+                className=" absolute right-5 top-12"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? (
+                  <EyeSlashIcon className="h-5 w-5" />
+                ) : (
+                  <EyeIcon className="h-5 w-5" />
+                )}
+              </button>
+            </div>
+
+            {/* submit btn */}
+
             <button
               disabled={loading}
               type="submit"
@@ -148,22 +206,50 @@ const Login = () => {
               required
             />
 
-            <InputField
-              label="New Password"
-              type="password"
-              value={form.newPassword}
-              onChange={(e) => handleChange("newPassword", e.target.value)}
-              required
-            />
+            {/* New Password */}
+            <div className="relative">
+              <InputField
+                label="New Password"
+                type={showNewPassword ? "text" : "password"}
+                value={form.newPassword}
+                onChange={(e) => handleChange("newPassword", e.target.value)}
+                required
+              />
+              <button
+                type="button"
+                className="absolute right-5 top-12"
+                onClick={() => setShowNewPassword(!showNewPassword)}
+              >
+                {showNewPassword ? (
+                  <EyeSlashIcon className="h-5 w-5" />
+                ) : (
+                  <EyeIcon className="h-5 w-5" />
+                )}
+              </button>
+            </div>
 
-            <InputField
-              label="Confirm Password"
-              type="password"
-              value={form.confirmPassword}
-              onChange={(e) => handleChange("confirmPassword", e.target.value)}
-              required
-            />
-            {/* button to submit */}
+            {/* Confirm Password */}
+            <div className="relative">
+              <InputField
+                label="Confirm Password"
+                type={showConfirmPassword ? "text" : "password"}
+                value={form.confirmPassword}
+                onChange={(e) => handleChange("confirmPassword", e.target.value)}
+                required
+              />
+              <button
+                type="button"
+                className=" absolute right-5 top-12"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                {showConfirmPassword ? (
+                  <EyeSlashIcon className="h-5 w-5" />
+                ) : (
+                  <EyeIcon className="h-5 w-5" />
+                )}
+              </button>
+            </div>
+
             <button
               type="submit"
               disabled={loading}
