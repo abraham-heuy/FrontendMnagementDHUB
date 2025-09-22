@@ -50,8 +50,8 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
       navigate("/admin");
     } catch (err: any) {
       console.error("Login error:", err);
-        //show general messaging from the specified cases I have defined in the service
-         setGeneralError(err.message);
+      //show general messaging from the specified cases I have defined in the service
+      setGeneralError(err.message);
     } finally {
       setLoading(false);
     }
@@ -92,9 +92,8 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className={`w-full px-4 py-2 rounded-lg border ${
-                errors.email ? "border-red-500" : "border-gray-300"
-              } focus:ring-2 focus:ring-green-500 outline-none`}
+              className={`w-full px-4 py-2 rounded-lg border ${errors.email ? "border-red-500" : "border-gray-300"
+                } focus:ring-2 focus:ring-green-500 outline-none`}
             />
             {errors.email && (
               <p className="text-red-500 text-xs mt-1">{errors.email}</p>
@@ -108,9 +107,8 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className={`w-full px-4 py-2 rounded-lg border ${
-                errors.password ? "border-red-500" : "border-gray-300"
-              } focus:ring-2 focus:ring-green-500 outline-none pr-10`}
+              className={`w-full px-4 py-2 rounded-lg border ${errors.password ? "border-red-500" : "border-gray-300"
+                } focus:ring-2 focus:ring-green-500 outline-none pr-10`}
             />
             <button
               type="button"

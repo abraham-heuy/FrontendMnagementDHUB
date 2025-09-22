@@ -7,6 +7,8 @@ import AdminPage from "./pages/Admin";
 import ProtectedRoute from "./components/Admin/protect";
 import Auth from "./pages/Login";
 import NotFound from "./components/NotFoundWildcard";
+import About from "./pages/About";
+import Dashboard from "./pages/Dashboard";
 
 const App = () => {
   return (
@@ -14,7 +16,9 @@ const App = () => {
       <Routes>
         <Route path="*" element={<NotFound />} />
         <Route path="/" element={<Landing />} />
-        <Route path="/students" element={<Students />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/dashboard/*" element={<Dashboard />} />
+        {/* <Route path="/students" element={<Students />} /> */}
         <Route path="/auth/*" element={<Auth />} />
         <Route path="/apply" element={<Application />} />
         {/* Admin feature routes */}
