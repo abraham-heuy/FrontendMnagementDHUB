@@ -1,13 +1,17 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import baseURL from "../../lib/environment";
+import { loginStudent } from "../../utils/api";
 import success from "../../assets/images/success.png";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/16/solid";
 import InputField from "../InputField";
 import Modal from "../Modal";
 
+interface LoginProps {
+  onLogin?: () => void;
+}
+
 // login component for user authentication
-const Login = () => {
+const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const navigate = useNavigate();
   const [form, setForm] = useState({
     email: "",
@@ -33,39 +37,23 @@ const Login = () => {
 
     try {
       // API call to login endpoint
-      const response = await fetch(`${baseURL}/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify(form),
-      })
-      const data = await response.json()
-      if (!response.ok) {
-        setModalConfig({
-          title: "Error",
-          message: data.message || "Something went wrong",
-        })
-        setIsModalOpen(true)
-        return
-      }
+
+      // Assuming the response contains user data
+      const data = await loginStudent(form.email, form.password);
+      if (onLogin) onLogin();
 
       // success modal
       setModalConfig({
         title: "Success",
-        message: `Welcome back ${data.user.name}`,
+        message: `Welcome back ${data.user.fullName}`,
       })
       setIsModalOpen(true)
 
       setTimeout(() => {
         setIsModalOpen(false)
-        if (data.user.role === "Admin") {
-          navigate("/dashboard/admin")
-        } else {
-          navigate("/dashboard/student")
-        }
+        navigate("/dashboard/student")
       }, 1500)
+
       setLoading(false)
     } catch (error: any) {
       setModalConfig({

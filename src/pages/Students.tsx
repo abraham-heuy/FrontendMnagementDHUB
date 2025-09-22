@@ -19,7 +19,7 @@ const Students = () => {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        const response = await fetch(`${baseURL}/auth/current`, {
+        const response = await fetch(`${baseURL}/auth/me`, {
           method: "GET",
           credentials: "include",
         });
@@ -27,16 +27,14 @@ const Students = () => {
 
         if (response.ok) {
           setUser({
-            name: data.name,
+            name: data.fullName,
             email: data.email,
             role: data.role,
           });
         } else {
-          console.log(data);
           navigate("/auth/login");
         }
       } catch (error) {
-        console.log(error);
         navigate("/auth/login");
       }
     };
