@@ -1,14 +1,16 @@
+import type { ReactNode } from "react";
 import { FaX } from "react-icons/fa6";
 
-interface ModalProps {
+export interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
-  message: string;
-  image?: string;
+  message: ReactNode;
+  image?: string; 
+  children?: ReactNode; 
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, message, image }) => {
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, message, image, children }) => {
   if (!isOpen) return null;
 
   return (
@@ -35,13 +37,16 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, message, image })
             <img
               src={image}
               alt="modal illustration"
-              className="max-h-52 w-auto object-contain" // allows image to scale nicely
+              className="max-h-52 w-auto object-contain"
             />
           </div>
         )}
 
         {/* Message */}
-        <p className="text-center text-green-700">{message}</p>
+        <div className="text-center text-green-700 mb-6">{message}</div>
+
+        {/* Children (like Apply button) */}
+        {children && <div className="w-full flex justify-end">{children}</div>}
       </div>
     </div>
   );

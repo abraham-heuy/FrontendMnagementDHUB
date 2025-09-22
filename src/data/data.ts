@@ -19,17 +19,17 @@ export const NavbarMenu = [
     link: "#",
     icon: FiCalendar,
     children: [
-      { id: 31, title: "Hackathons", link: "/events/hackathons" },
-      { id: 32, title: "Workshops", link: "/events/workshops" },
-      { id: 33, title: "Seminars", link: "/events/seminars" },
+      { id: 31, title: "Hackathons", link: "/events/hackathon", filter: "hackathon" },
+      { id: 32, title: "Workshops", link: "/events/workshop", filter: "workshop" },
+      { id: 33, title: "Seminars", link: "/events/seminar", filter: "seminar" },
     ],
   },
-  {
-    id: 4,
-    title: "Apply",
-    link: "/apply",
-    icon: FiEdit,
-  },
+  // {
+  //   id: 4,
+  //   title: "Apply",
+  //   link: "/apply",
+  //   icon: FiEdit,
+  // },
 ];
 
 

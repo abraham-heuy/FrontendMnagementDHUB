@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import Sidebar from "../components/Admin/sidebar";
+import Sidebar from "../components/Admin/Sidebar";
 import DashboardOverview from "../components/Admin/home";
 import Students from "../components/Admin/students";
-import { Search, Bell, Settings, Menu, X } from "lucide-react";
+import { Search,Settings, Menu, X } from "lucide-react";
 import Events from "../components/Admin/events";
 import Applications from "../components/Admin/applications";
 import MentorManagement from "../components/Admin/mentors";
@@ -11,38 +11,39 @@ import AccountSettings from "../components/Admin/settings";
 import Logout from "../components/Admin/logout";
 import Analytics from "../components/Admin/analytics";
 import Reports from "../components/Admin/reports";
+import NotificationBell from "../components/Admin/NotificationBell";
 
 const AdminPage: React.FC = () => {
   const [activeSection, setActiveSection] = useState("dashboard");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const renderSection = () => {
-    switch (activeSection) {
-      case "dashboard":
-        return <DashboardOverview setActiveSection={setActiveSection} />;
-      case "events":
-        return <Events />;
-      case "students":
-        return <Students />;
-      case "applications":
-        return <Applications />;
-      case "mentors":
-        return <MentorManagement />;
-      case "notifications":
-        return <Notifications />;
-      case "analytics":
-        return <Analytics />;
-      case "reports":
-        return <Reports />;
-      case "settings":
-        return <AccountSettings />;
-      case "logout":
-        return <Logout />;
-      default:
-        return <DashboardOverview setActiveSection={setActiveSection} />;
-    }
-  };
-  
+ const renderSection = () => {
+  switch (activeSection) {
+    case "dashboard":
+      return <DashboardOverview setActiveSection={setActiveSection} />;
+    case "events":
+      return <Events />;
+    case "students":
+      return <Students />;
+    case "applications":
+      return <Applications />;
+    case "mentors":
+      return <MentorManagement />;
+    case "notifications":
+      return <Notifications />;
+    case "analytics":
+      return <Analytics />;
+    case "reports":
+      return <Reports />;
+    case "settings":
+      return <AccountSettings />;
+    case "logout":
+      return <Logout />;
+    default:
+      return <DashboardOverview setActiveSection={setActiveSection} />;
+  }
+};
+
 
   return (
     <div className="flex h-screen w-screen bg-gray-100">
@@ -78,15 +79,17 @@ const AdminPage: React.FC = () => {
 
           {/* Right Icons */}
           <div className="flex items-center gap-6">
-            <Bell className="text-gray-600 cursor-pointer" />
-            <Settings className="text-gray-600 cursor-pointer" />
+          <NotificationBell />
+            <Settings className="text-gray-600 cursor-pointer" 
+               onClick={()=>setActiveSection("settings")}
+            />
             <div className="flex items-center gap-2">
               <img
                 src="https://i.pravatar.cc/40"
                 alt="profile"
                 className="w-8 h-8 rounded-full"
               />
-              <span className="text-sm font-medium">Admin User</span>
+              <span className="text-sm font-medium">ABRAHAM</span>
             </div>
           </div>
         </div>

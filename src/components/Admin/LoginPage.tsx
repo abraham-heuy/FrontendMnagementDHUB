@@ -1,5 +1,9 @@
+// src/components/Admin/AdminLogin.tsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { loginAdmin } from "../../utils/api";
 
 interface AdminLoginProps {
   onLogin?: () => void;
@@ -8,13 +12,19 @@ interface AdminLoginProps {
 const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>(
+    {}
+  );
   const [generalError, setGeneralError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetSent, setResetSent] = useState(false);
 
   const navigate = useNavigate();
 
+  // ✅ Validation
   const validate = () => {
     const newErrors: { email?: string; password?: string } = {};
     if (!email.trim()) newErrors.email = "Email is required.";
@@ -26,175 +36,169 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // ✅ Submit Login
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setGeneralError("");
-
     if (!validate()) return;
 
     setLoading(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // mock API
+      await loginAdmin(email, password);
 
-      if (email === "admin@example.com" && password === "admin123") {
-        if (onLogin) onLogin();
-        navigate("/admin");
-      } else {
-        setGeneralError("Invalid email or password.");
-      }
-    } catch {
-      setGeneralError("Something went wrong. Please try again.");
+      if (onLogin) onLogin();
+      navigate("/admin");
+    } catch (err: any) {
+      console.error("Login error:", err);
+        //show general messaging from the specified cases I have defined in the service
+         setGeneralError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <h2 style={styles.title}>Admin Login</h2>
-        {generalError && <div style={styles.generalError}>{generalError}</div>}
+  // ✅ Reset password mock
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(resetEmail)) return;
 
-        <form onSubmit={handleSubmit} style={styles.form}>
-          {/* Email Field */}
-          <div style={styles.inputGroup}>
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    setResetSent(true);
+    setTimeout(() => {
+      setForgotOpen(false);
+      setResetSent(false);
+      setResetEmail("");
+    }, 2000);
+  };
+
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-slate-50">
+      <div className="w-full max-w-md bg-white shadow-lg rounded-2xl p-6">
+        <h2 className="text-2xl font-bold text-center text-green-700 mb-4">
+          Admin Login
+        </h2>
+
+        {generalError && (
+          <div className="text-red-500 text-sm mb-3 text-center">
+            {generalError}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Email */}
+          <div>
             <input
               type="email"
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              style={{
-                ...styles.input,
-                borderColor: errors.email ? "#e53935" : "#ccc",
-              }}
+              className={`w-full px-4 py-2 rounded-lg border ${
+                errors.email ? "border-red-500" : "border-gray-300"
+              } focus:ring-2 focus:ring-green-500 outline-none`}
             />
-            {errors.email && <div style={styles.error}>{errors.email}</div>}
+            {errors.email && (
+              <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+            )}
           </div>
 
-          {/* Password Field */}
-          <div style={styles.inputGroup}>
-            <div style={{ position: "relative", width: "100%" }}>
-              <input
-                type={showPassword ? "text" : "password"}
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                style={{
-                  ...styles.input,
-                  borderColor: errors.password ? "#e53935" : "#ccc",
-                  paddingRight: 40,
-                }}
-              />
-              <span
-                onClick={() => setShowPassword(!showPassword)}
-                style={styles.togglePassword}
-              >
-                {showPassword ? "Hide" : "Show"}
-              </span>
-            </div>
-            {errors.password && <div style={styles.error}>{errors.password}</div>}
+          {/* Password */}
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={`w-full px-4 py-2 rounded-lg border ${
+                errors.password ? "border-red-500" : "border-gray-300"
+              } focus:ring-2 focus:ring-green-500 outline-none pr-10`}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+            {errors.password && (
+              <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+            )}
           </div>
 
           {/* Forgot Password */}
-          <div style={styles.forgotPassword}>
-            <a href="#" style={styles.forgotLink}>
+          <div className="text-right">
+            <button
+              type="button"
+              onClick={() => setForgotOpen(true)}
+              className="text-sm text-green-700 hover:underline"
+            >
               Forgot Password?
-            </a>
+            </button>
           </div>
 
-          <button type="submit" style={styles.button} disabled={loading}>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-2 rounded-lg bg-yellow-400 hover:bg-yellow-500 text-white font-bold transition"
+          >
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
       </div>
+
+      {/* Forgot Password Modal */}
+      <AnimatePresence>
+        {forgotOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center"
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              className="bg-white p-6 rounded-xl shadow-lg w-full max-w-sm"
+            >
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                Reset Password
+              </h3>
+              {resetSent ? (
+                <p className="text-green-600 text-sm">
+                  A reset link will be sent to your email soon!
+                </p>
+              ) : (
+                <form onSubmit={handleResetPassword} className="space-y-3">
+                  <input
+                    type="email"
+                    placeholder="Enter your account email"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 outline-none"
+                  />
+                  <div className="flex justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setForgotOpen(false)}
+                      className="px-3 py-1 text-sm border rounded-lg text-gray-600 hover:bg-gray-100"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-3 py-1 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700"
+                    >
+                      Send Reset Link
+                    </button>
+                  </div>
+                </form>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
-};
-
-const styles: { [key: string]: React.CSSProperties } = {
-  container: {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    height: "100vh",
-    backgroundColor: "#f5f5f5",
-  },
-  card: {
-    padding: 40,
-    borderRadius: 12,
-    boxShadow: "0 8px 24px rgba(0,0,0,0.2)",
-    backgroundColor: "#ffffff",
-    width: 380,
-    maxWidth: "90%",
-    textAlign: "center",
-    transition: "all 0.3s ease",
-  },
-  title: {
-    marginBottom: 24,
-    color: "#2E7D32",
-    fontSize: 24,
-    fontWeight: 600,
-  },
-  form: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 16,
-  },
-  inputGroup: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "flex-start",
-  },
-  input: {
-    width: "100%",
-    padding: 12,
-    borderRadius: 6,
-    border: "1px solid #ccc",
-    fontSize: 16,
-    outline: "none",
-    transition: "border-color 0.3s, box-shadow 0.3s",
-  },
-  togglePassword: {
-    position: "absolute",
-    right: 10,
-    top: "50%",
-    transform: "translateY(-50%)",
-    cursor: "pointer",
-    color: "#2E7D32",
-    fontWeight: 500,
-    userSelect: "none",
-  },
-  error: {
-    marginTop: 4,
-    color: "#e53935",
-    fontSize: 13,
-  },
-  generalError: {
-    marginBottom: 12,
-    color: "#e53935",
-    fontSize: 14,
-    fontWeight: 500,
-  },
-  forgotPassword: {
-    alignSelf: "flex-end",
-    marginBottom: 10,
-  },
-  forgotLink: {
-    color: "#2E7D32",
-    fontSize: 14,
-    textDecoration: "none",
-  },
-  button: {
-    padding: 12,
-    borderRadius: 6,
-    border: "none",
-    backgroundColor: "#FFD700",
-    color: "#ffffff",
-    fontWeight: "bold",
-    cursor: "pointer",
-    fontSize: 16,
-    transition: "background 0.3s",
-  },
 };
 
 export default AdminLogin;

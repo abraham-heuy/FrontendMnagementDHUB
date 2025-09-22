@@ -2,9 +2,13 @@ import { Link } from "react-router-dom";
 import { NavbarMenu } from "../data/data";
 import { useEffect, useState } from "react";
 import { FiX as X, FiMenu as Menu, FiChevronDown } from "react-icons/fi";
-import logo from '../assets/images/Logo.png';
+import logo from "../assets/images/Logo.png";
 
-const Navigation = () => {
+interface NavigationProps {
+  onFilter?: (category: string) => void; // filter callback
+}
+
+const Navigation = ({ onFilter }: NavigationProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
   const [scrolled, setScrolled] = useState(false);
@@ -34,14 +38,11 @@ const Navigation = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-2xl shadow-2xs backdrop-blur-md">
-            <img src={logo} alt="logo" className="w-24 h-12 rounded-2xl object-contain" />
-            {/* <span
-              className={`text-sm font-bold tracking-wide transition-colors duration-300 ${
-                scrolled ? "text-green-700" : "text-dark"
-              }`}
-            >
-              DeSIC
-            </span> */}
+            <img
+              src={logo}
+              alt="logo"
+              className="w-24 h-12 rounded-2xl object-contain"
+            />
           </div>
 
           {/* Desktop menu */}
@@ -71,14 +72,16 @@ const Navigation = () => {
                           scrolled ? "shadow-md" : "shadow-xl"
                         }`}
                       >
-                        {item.children.map((child) => (
-                          <li key={child.id}>
-                            <Link
-                              to={child.link}
-                              className="block px-4 py-2.5 text-gray-700 rounded-md hover:bg-green-50 hover:text-green-600 transition-colors"
+                        {item.children.map((child, index) => (
+                          <li key={`${item.id}-${index}`}>
+                            <button
+                              onClick={() =>
+                                onFilter?.(child.filter || child.title)
+                              }
+                              className="w-full text-left px-4 py-2.5 text-gray-700 rounded-md hover:bg-green-50 hover:text-green-600 transition-colors"
                             >
                               {child.title}
-                            </Link>
+                            </button>
                           </li>
                         ))}
                       </ul>
@@ -104,7 +107,7 @@ const Navigation = () => {
           {/* Desktop Sign In Button */}
           <div className="hidden md:flex">
             <Link
-              to="/signIn"
+              to="/auth/login"
               className={`ml-6 px-5 py-2 rounded-full font-medium transition-colors duration-300 ${
                 scrolled
                   ? "bg-green-600 text-white hover:bg-green-700"
@@ -144,13 +147,18 @@ const Navigation = () => {
         >
           <ul className="px-4 pt-2 pb-4 space-y-1">
             {NavbarMenu.map((item) => (
-              <li key={item.id} className="border-b border-white/10 last:border-0">
+              <li
+                key={item.id}
+                className="border-b border-white/10 last:border-0"
+              >
                 {item.children ? (
                   <>
                     <button
                       onClick={() => toggleDropdown(item.id)}
                       className={`flex justify-between items-center w-full text-left py-3 ${
-                        scrolled ? "text-gray-700" : "text-dark hover:bg-dark/20 px-2 rounded-md"
+                        scrolled
+                          ? "text-gray-700"
+                          : "text-dark hover:bg-dark/20 px-2 rounded-md"
                       }`}
                     >
                       <span className="flex items-center gap-2">
@@ -166,19 +174,21 @@ const Navigation = () => {
                     </button>
                     {activeDropdown === item.id && (
                       <ul className="ml-6 mb-3 space-y-2.5">
-                        {item.children.map((child) => (
-                          <li key={child.id}>
-                            <Link
-                              to={child.link}
+                        {item.children.map((child, index) => (
+                          <li key={`${item.id}-${index}`}>
+                            <button
+                              onClick={() => {
+                                onFilter?.(child.filter || child.title);
+                                setIsOpen(false);
+                              }}
                               className={`block py-2 pl-3 rounded-md ${
                                 scrolled
                                   ? "text-gray-600 hover:bg-green-50"
                                   : "text-dark/80 hover:bg-green-200/20"
                               }`}
-                              onClick={() => setIsOpen(false)}
                             >
                               {child.title}
-                            </Link>
+                            </button>
                           </li>
                         ))}
                       </ul>
@@ -188,7 +198,9 @@ const Navigation = () => {
                   <Link
                     to={item.link}
                     className={`flex items-center gap-2 py-3 ${
-                      scrolled ? "text-gray-700" : "text-dark px-2 hover:bg-dark/20 rounded-md"
+                      scrolled
+                        ? "text-gray-700"
+                        : "text-dark px-2 hover:bg-dark/20 rounded-md"
                     }`}
                     onClick={() => setIsOpen(false)}
                   >
@@ -202,7 +214,7 @@ const Navigation = () => {
             {/* Mobile Sign In Button */}
             <li className="pt-2">
               <Link
-                to="/signIn"
+                to="/auth/login"
                 className={`block w-full text-center px-5 py-2 rounded-full font-medium transition-colors duration-300 ${
                   scrolled
                     ? "bg-green-600 text-white hover:bg-green-700"

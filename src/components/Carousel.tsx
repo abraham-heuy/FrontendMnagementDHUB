@@ -32,7 +32,7 @@ const Carousel = () => {
   const [current, setCurrent] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
-  const intervalRef = useRef<number | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const nextSlide = () => {
     setCurrent((prev) => (prev + 1) % slides.length);
