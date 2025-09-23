@@ -51,7 +51,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
       setTimeout(() => {
         setIsModalOpen(false)
-        navigate("/dashboard/student")
+        navigate("/dashboard/student/startup")
       }, 1500)
 
       setLoading(false)

@@ -47,7 +47,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
       await loginAdmin(email, password);
 
       if (onLogin) onLogin();
-      navigate("/dashboard/admin");
+      navigate("/dashboard/admin/home");
     } catch (err: any) {
       console.error("Login error:", err);
       //show general messaging from the specified cases I have defined in the service

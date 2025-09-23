@@ -17,7 +17,7 @@ const AdminPage = () => {
   const [user, setUser] = useState<User>({
     name: "",
     email: "",
-    role: "admin"
+    role: ""
   });
   const [open, setOpen] = useState(false);
 
