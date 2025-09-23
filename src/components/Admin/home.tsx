@@ -1,4 +1,3 @@
-import React from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import "./flipcard.css";
@@ -11,12 +10,14 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { useNavigate } from "react-router-dom";
 
-interface DashboardOverviewProps {
-  setActiveSection: (section: string) => void;
-}
 
-const DashboardOverview: React.FC<DashboardOverviewProps> = ({ setActiveSection }) => {
+
+const DashboardOverview = () => {
+
+  const navigate = useNavigate();
+
   // Dummy data for chart
   const data = [
     { day: "Mon", hours: 6 },
@@ -73,7 +74,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ setActiveSection 
               </div>
               <button
                 className="mt-3 sm:mt-0 px-4 py-2 text-sm font-medium border border-sky-400 text-sky-500 rounded-xl hover:bg-sky-50"
-                onClick={() => setActiveSection("settings")}
+                onClick={() => navigate("/dashboard/admin/settings")}
               >
                 Account Settings
               </button>

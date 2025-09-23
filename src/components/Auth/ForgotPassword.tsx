@@ -1,11 +1,12 @@
 
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import baseURL from "../../lib/environment";
+
 import InputField from "../InputField"; 
 import success from "../../assets/images/success.png";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/16/solid";
 import Modal from "../Modal";
+const apiURL= import.meta.env.VITE_API_URL;
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
@@ -43,7 +44,7 @@ const ForgotPassword = () => {
     setLoading(true);
 
     try {
-      const response = await fetch(`${baseURL}/auth/forgot-password`, {
+      const response = await fetch(`${apiURL}/auth/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

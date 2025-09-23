@@ -1,106 +1,128 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import Sidebar from "../components/Admin/Sidebar";
-import DashboardOverview from "../components/Admin/home";
-import Students from "../components/Admin/students";
-import { Search, Settings, Menu, X } from "lucide-react";
-import Events from "../components/Admin/events";
-import Applications from "../components/Admin/applications";
-import MentorManagement from "../components/Admin/mentors";
-import Notifications from "../components/Admin/notifications";
-import AccountSettings from "../components/Admin/settings";
-import Logout from "../components/Admin/logout";
-import Analytics from "../components/Admin/analytics";
-import Reports from "../components/Admin/reports";
-import NotificationBell from "../components/Admin/NotificationBell";
+import { Outlet, useNavigate } from "react-router-dom";
+import { FiBell, FiMenu } from "react-icons/fi";
 
-const AdminPage: React.FC = () => {
-  const [activeSection, setActiveSection] = useState("dashboard");
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+interface User {
+  name: string;
+  email: string;
+  role: string;
+  image?: string;
+}
 
-  const renderSection = () => {
-    switch (activeSection) {
-      case "dashboard":
-        return <DashboardOverview setActiveSection={setActiveSection} />;
-      case "events":
-        return <Events />;
-      case "students":
-        return <Students />;
-      case "applications":
-        return <Applications />;
-      case "mentors":
-        return <MentorManagement />;
-      case "notifications":
-        return <Notifications />;
-      case "analytics":
-        return <Analytics />;
-      case "reports":
-        return <Reports />;
-      case "settings":
-        return <AccountSettings />;
-      case "logout":
-        return <Logout />;
-      default:
-        return <DashboardOverview setActiveSection={setActiveSection} />;
-    }
+const apiURL = import.meta.env.VITE_API_URL;
+
+const AdminPage = () => {
+  const navigate = useNavigate();
+  const [user, setUser] = useState<User>({
+    name: "",
+    email: "",
+    role: "admin"
+  });
+  const [open, setOpen] = useState(false);
+
+  // Fetches user information from the API on component mount.
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        const response = await fetch(`${apiURL}/auth/me`, {
+          method: "GET",
+          credentials: "include",
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+          // Update the user state with fetched data, including the image.
+          setUser({
+            name: data.fullName,
+            email: data.email,
+            role: data.role,
+            image: data.image // Make sure your API returns an image URL.
+          });
+        } else {
+          // Redirect to login if authentication fails.
+          navigate("/admin/login");
+        }
+      } catch (error) {
+        // Redirect to login on network or other errors.
+        navigate("/admin/login");
+      }
+    };
+    checkAuthStatus();
+  }, [navigate]);
+
+  // Gets the current tab name from the URL pathname.
+  const getCurrentTab = () => {
+    const path = location.pathname;
+    if (path.endsWith("/admin") || path.endsWith("/admin/")) return "dashboard";
+    return path.split("/").pop() as string;
   };
 
-
   return (
-    <div className="flex h-screen w-screen bg-gray-100">
-      {/* Sidebar */}
+    <div className="bg-secondary h-screen overflow-hidden flex">
+      {/* Sidebar - Positioned separately */}
       <Sidebar
-        activeSection={activeSection}
-        setActiveSection={setActiveSection}
-        isOpen={isSidebarOpen}
-        setIsOpen={setIsSidebarOpen}
+        active={getCurrentTab()}
+        open={open}
+        setOpen={setOpen}
       />
 
-      {/* Main Content */}
-      <div className="flex flex-col flex-1 overflow-hidden">
-        {/* Topbar */}
-        <div className="flex items-center justify-between bg-white shadow px-4 md:px-6 py-4">
-          {/* Hamburger only on mobile */}
-          <button
-            className="md:hidden text-green-700"
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          >
-            {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col lg:ml-0">
+        {/* Top Navigation Bar - Fixed Position */}
+        <div className="bg-white/60 backdrop-blur-md fixed w-full shadow-md z-10 top-0 left-0">
+          <div className="flex items-center justify-between p-4 md:px-6">
+            {/* Left side: Menu toggle + Title */}
+            <div className="flex items-center">
+              <button
+                onClick={() => setOpen(true)}
+                className="mr-4 cursor-pointer text-gray-400 lg:hidden"
+              >
+                <FiMenu size={24} />
+              </button>
+              <h1 className="text-xl font-bold text-gray-600 capitalize">
+                {getCurrentTab() === "home" ? "Dashboard" : getCurrentTab()}
+              </h1>
+            </div>
 
-          {/* Search Bar */}
-          <div className="flex items-center gap-2 border px-3 py-2 rounded-md w-1/2 md:w-1/3">
-            <Search size={18} className="text-gray-500" />
-            <input
-              type="text"
-              placeholder="Search..."
-              className="flex-1 outline-none text-sm"
-            />
-          </div>
+            {/* Right side: Avatar and Notifications */}
+            <div className="flex items-center space-x-4">
+              {/* Avatar Component: Renders image or initial */}
+              <div className="flex gap-2 items-center bg-secondary rounded-lg py-1 px-3">
+                {user.image ? (
+                  // If a user image exists, display it.
+                  <img
+                    className="w-8 h-8 rounded-full"
+                    src={user.image}
+                    alt={user.name}
+                  />
+                ) : (
+                  // If no image, display a circular placeholder with the first initial. 
+                  <div className="w-8 h-8 rounded-full bg-secondary text-gray-700 flex items-center justify-center font-bold text-sm">
+                    {user.name && user.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <span className="text-md font-medium text-gray-800">{user.name}</span>
+              </div>
 
-          {/* Right Icons */}
-          <div className="flex items-center gap-6">
-            <NotificationBell />
-            <Settings className="text-gray-600 cursor-pointer"
-              onClick={() => setActiveSection("settings")}
-            />
-            <div className="flex items-center gap-2">
-              <img
-                src="https://i.pravatar.cc/40"
-                alt="profile"
-                className="w-8 h-8 rounded-full"
-              />
-              <span className="text-sm font-medium">ABRAHAM</span>
+              {/* Notifications Button */}
+              <button
+                onClick={() => navigate("/dashboard/admin/notifications")}
+                className="relative p-2 text-gray-500 hover:text-green-600 transition-colors"
+              >
+                <FiBell size={20} />
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Dynamic Section */}
-        <div className="flex-1 overflow-y-auto p-6">{renderSection()}</div>
+        {/* Content Area - Adjusted to not be hidden by the fixed nav */}
+        <div className="space-y-6 p-4 md:p-6 mt-20 mb-20 min-h-screen overflow-auto">
+          <Outlet />
+        </div>
       </div>
     </div>
   );
 };
 
 export default AdminPage;
-
-

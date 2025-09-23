@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
-import baseURL from "../lib/environment";
 import { FiBell, FiMenu } from "react-icons/fi";
 import Sidebar from "../components/students/Sidebar";
+
+const apiURL = import.meta.env.VITE_API_URL;
 
 interface User {
   name: string;
@@ -10,7 +11,7 @@ interface User {
   role: string;
   image?: string;
 }
-const Students = () => {
+const StudentPage = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User>({ name: "", email: "", role: "" });
   const [open, setOpen] = useState(false);
@@ -19,7 +20,7 @@ const Students = () => {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        const response = await fetch(`${baseURL}/auth/me`, {
+        const response = await fetch(`${apiURL}/auth/me`, {
           method: "GET",
           credentials: "include",
         });
@@ -50,16 +51,20 @@ const Students = () => {
   };
 
   return (
-    <div className="bg-secondary min-h-screen overflow-auto flex">
-      {/* Sidebar */}
-      <Sidebar active={getCurrentTab()} open={open} setOpen={setOpen} />
+    <div className="bg-secondary h-screen overflow-hidden flex">
+      {/* Sidebar - Positioned separately */}
+      <Sidebar
+        active={getCurrentTab()}
+        open={open}
+        setOpen={setOpen}
+      />
 
-      {/* Main Content */}
+      {/* Main Content Area */}
       <div className="flex-1 flex flex-col lg:ml-0">
-        {/* Top Navigation */}
-        <div className="bg-white/60 backdrop-blur-md fixed w-full shadow-md z-10">
+        {/* Top Navigation Bar - Fixed Position */}
+        <div className="bg-white/60 backdrop-blur-md fixed w-full shadow-md z-10 top-0 left-0">
           <div className="flex items-center justify-between p-4 md:px-6">
-            {/* Left: Menu toggle + Title */}
+            {/* Left side: Menu toggle + Title */}
             <div className="flex items-center">
               <button
                 onClick={() => setOpen(true)}
@@ -72,21 +77,29 @@ const Students = () => {
               </h1>
             </div>
 
-            {/* Right: Notifications + Avatar */}
-            <div className="mx-auto flex items-center space-x-4">
-              {/* Avatar */}
-              <div className="flex gap-5 items-center space-x-2 bg-gray-100 rounded-full py-1 px-3">
-                <img
-                  className="w-8 h-8 rounded-full md:flex hidden"
-                  src={user.image}
-                  alt={user.name}
-                />
+            {/* Right side: Avatar and Notifications */}
+            <div className="flex items-center space-x-4">
+              {/* Avatar Component: Renders image or initial */}
+              <div className="flex gap-2 items-center bg-secondary rounded-lg py-1 px-3">
+                {user.image ? (
+                  // If a user image exists, display it.
+                  <img
+                    className="w-8 h-8 rounded-full"
+                    src={user.image}
+                    alt={user.name}
+                  />
+                ) : (
+                  // If no image, display a circular placeholder with the first initial. 
+                  <div className="w-8 h-8 rounded-full bg-secondary text-gray-700 flex items-center justify-center font-bold text-sm">
+                    {user.name && user.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
                 <span className="text-md font-medium text-gray-800">{user.name}</span>
               </div>
 
-              {/* Notifications */}
+              {/* Notifications Button */}
               <button
-                onClick={() => navigate("notifications")}
+                onClick={() => navigate("/dashboard/admin/notifications")}
                 className="relative p-2 text-gray-500 hover:text-green-600 transition-colors"
               >
                 <FiBell size={20} />
@@ -95,8 +108,8 @@ const Students = () => {
           </div>
         </div>
 
-        {/* Content Area */}
-        <div className="space-y-6 p-4 md:p-6 mt-16">
+        {/* Content Area - Adjusted to not be hidden by the fixed nav */}
+        <div className="space-y-6 p-4 md:p-6 mt-20 mb-20 min-h-screen overflow-auto">
           <Outlet />
         </div>
       </div>
@@ -104,4 +117,4 @@ const Students = () => {
   )
 }
 
-export default Students
+export default StudentPage

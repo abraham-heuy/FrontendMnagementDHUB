@@ -1,6 +1,7 @@
 // startup service to handle startup-related API calls
 
-import baseURL from "../environment";
+const apiURL = import.meta.env.VITE_API_URL || "http://localhost:3000/api/v1";
+const baseURL = apiURL;
 import type { Startup } from "../types/startup";
 
 export const startupService = {

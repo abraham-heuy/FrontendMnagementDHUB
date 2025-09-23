@@ -9,123 +9,197 @@ import {
   BarChart2,
   FileBarChart,
   Settings,
-  LogOut,
 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { FiLogOut, FiX } from "react-icons/fi";
+const apiURL = import.meta.env.VITE_API_URL;
 
-interface SidebarProps {
-  activeSection: string;
-  setActiveSection: (section: string) => void;
-  isOpen: boolean;
-  setIsOpen: (open: boolean) => void;
-}
 
-const Sidebar: React.FC<SidebarProps> = ({
-  activeSection,
-  setActiveSection,
-  isOpen,
-  setIsOpen,
-}) => {
-  const sections = [
+export type DashboardTab =
+  | "dashboard"
+  | "events"
+  | "applications"
+  | "students"
+  | "mentors"
+  | "notifications"
+  | "analytics"
+  | "reports"
+  | "settings"
+
+
+const menuGroups: {
+  title: string;
+  items: { key: DashboardTab; label: string; icon: React.ReactElement; path: string }[];
+}[] = [
     {
       title: "Main",
       items: [
-        { id: "dashboard", label: "Home", icon: Home },
-        { id: "events", label: "Events", icon: Calendar },
-        { id: "applications", label: "Applications", icon: FileText },
-      ],
+        { key: "dashboard", label: "Home", icon: <Home />, path: "/dashboard/admin/home" },
+
+        { key: "events", label: "Events", icon: <Calendar />, path: "/dashboard/admin/events" },
+
+        { key: "applications", label: "Applications", icon: <FileText />, path: "/dashboard/admin/applications" },
+      ]
     },
     {
       title: "People",
       items: [
-        { id: "students", label: "Student Management", icon: Users },
-        { id: "mentors", label: "Mentors", icon: UserCheck },
-        { id: "notifications", label: "Notifications", icon: Bell },
-      ],
+        { key: "students", label: "Student Management", icon: <Users />, path: "/dashboard/admin/students" },
+
+        { key: "mentors", label: "Mentors", icon: <UserCheck />, path: "/dashboard/admin/mentors" },
+
+        { key: "notifications", label: "Notifications", icon: <Bell />, path: "/dashboard/admin/notifications" },
+      ]
     },
+
     {
       title: "Data",
       items: [
-        { id: "analytics", label: "Analytics", icon: BarChart2 },
-        { id: "reports", label: "Reports", icon: FileBarChart },
-      ],
+        { key: "analytics", label: "Analytics", icon: <BarChart2 />, path: "/dashboard/admin/analytics" },
+        { key: "reports", label: "Reports", icon: <FileBarChart />, path: "/dashboard/admin/reports" },
+      ]
     },
   ];
 
-  const bottomItems = [
-    { id: "settings", label: "Settings", icon: Settings },
-    { id: "logout", label: "Logout", icon: LogOut },
-  ];
+const bottomMenu = [
+  { key: "settings" as DashboardTab, lable: "Settings", icon: <Settings />, path: "/dashboard/admin/settings" },
+]
+
+
+
+
+
+
+const Sidebar = ({
+  active,
+  open,
+  setOpen,
+}: {
+  active: string;
+  open: boolean;
+  setOpen: (o: boolean) => void;
+}) => {
+
+  const navigate = useNavigate()
+
+  const handleLogout = async () => {
+    try {
+      const response = await fetch(`${apiURL}/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!response.ok) {
+        console.log(localStorage.getItem("token"));
+        throw new Error("Logout failed");
+      }
+      console.log(`Logged out successfully, ${response.status}`);
+      navigate("/admin/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
 
   return (
-    <div
-      className={`fixed md:static top-0 left-0 h-full w-64 bg-white text-gray-800 border-r border-gray-200 transform ${
-        isOpen ? "translate-x-0" : "-translate-x-full"
-      } md:translate-x-0 transition-transform duration-300 z-50 flex flex-col`}
-    >
-      <h2 className="text-2xl font-bold text-green-700 text-center py-6 border-b border-gray-200">
-        DeSIC Admin
-      </h2>
+    <>
+      {open && (
+        <div
+          className="absolute inset-0 bg-black/80 z-40 lg:hidden"
+          onClick={() => setOpen(false)}
+        />
+      )}
 
-      <div className="flex-1 overflow-y-auto">
-        {sections.map((section, idx) => (
-          <div key={idx} className="mt-4">
-            <p className="px-6 text-xs uppercase text-green-600 font-semibold">
-              {section.title}
-            </p>
-            {section.items.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => {
-                  setActiveSection(item.id);
-                  setIsOpen(false); // close sidebar after click (mobile)
-                }}
-                className={`flex items-center w-full px-6 py-3 text-left text-sm gap-3 rounded-md transition ${
-                  activeSection === item.id
-                    ? "bg-green-100 text-green-700 font-medium"
-                    : "text-gray-700 hover:bg-gray-100 hover:text-green-700"
-                }`}
-              >
-                <item.icon
-                  size={18}
-                  className={`${
-                    activeSection === item.id ? "text-green-700" : "text-gray-500"
-                  }`}
-                />
-                {item.label}
-              </button>
-            ))}
-            <hr className="my-3 border-gray-200" />
+      <aside
+        className={`fixed top-0 left-0 w-64 h-full bg-secondary shadow-xl p-4 flex flex-col justify-between z-50 transition-transform duration-300 ease-in-out
+          ${open ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 lg:static lg:h-auto`}
+      >
+        {/* Header */}
+        <div className="flex-shrink-0">
+          <div className="flex items-center justify-between mb:4 sm:mb-6 ">
+            <h2 className="text-base font-serif sm:text-lg font-semibold text-green-200 tracking-wide">
+              Admin Dashboard
+            </h2>
+            <button
+              onClick={() => setOpen(false)}
+              className="lg:hidden text-gray-800"
+            >
+              <FiX size={20} />
+            </button>
           </div>
-        ))}
-      </div>
 
-      {/* Bottom Items */}
-      <div className="border-t border-gray-200 mt-auto">
-        {bottomItems.map((item) => (
+          {/* Navigation Groups */}
+          <nav className="flex flex-col gap-4 sm:gap-6 overflow-y-auto">
+            {menuGroups.map((group) => (
+              <div key={group.title}>
+                <div className="rounded-md mb-4 flex justify-center items-center flex-col">
+                  <p className="text-green-100 text-[11px] sm:text-xs font-serif italic">
+                    {group.title}
+                  </p>
+                </div>
+                <div className="flex flex-col gap-1">
+                  {group.items.map((item) => (
+                    <Link
+                      key={item.key}
+                      to={item.path}
+                      onClick={() => setOpen(false)}
+                      className={`w-full flex items-center gap-2 sm:gap-3 px-3 py-4 sm:px-4 sm:py-3 rounded-lg transition-all duration-200 font-medium text-sm sm:text-base
+                          ${active === item.key
+                          ? "bg-green-600 text-white shadow-md"
+                          : "text-gray-700 hover:bg-green-50"
+                        }`}
+                    >
+                      <span
+                        className={`text-base sm:text-lg ${active === item.key
+                          ? "text-white"
+                          : "text-green-600"
+                          }`}
+                      >
+                        {item.icon}
+                      </span>
+                      <span>{item.label}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </nav>
+        </div>
+        {/* Bottom Section */}
+        <div className="flex-shrink-0 mt-2">
+          <div className="flex flex-col gap-1">
+            {bottomMenu.map((item) => (
+              <Link
+                key={item.key}
+                to={item.path}
+                onClick={() => setOpen(false)}
+                className={`w-full flex items-center gap-2 sm:gap-3 px-3 py-2 sm:px-4 sm:py-3 rounded-lg transition-all duration-200 font-medium text-sm sm:text-base
+                            ${active === item.key
+                    ? "bg-green-600 text-white shadow-md"
+                    : "text-gray-700 hover:bg-green-50"
+                  }`}
+              >
+                <span
+                  className={`text-base sm:text-lg ${active === item.key ? "text-white" : "text-green-600"
+                    }`}
+                >
+                  {item.icon}
+                </span>
+                <span>{item.lable}</span>
+              </Link>
+            ))}
+          </div>
           <button
-            key={item.id}
-            onClick={() => {
-              setActiveSection(item.id);
-              setIsOpen(false);
-            }}
-            className={`flex items-center w-full px-6 py-3 text-left text-sm gap-3 rounded-md transition ${
-              activeSection === item.id
-                ? "bg-green-100 text-green-700 font-medium"
-                : "text-gray-700 hover:bg-gray-100 hover:text-green-700"
-            }`}
+            onClick={() => handleLogout()}
+            className="mt-2 mb-2 py-3 cursor-pointer px-4 flex items-center gap-2 w-full"
           >
-            <item.icon
-              size={18}
-              className={`${
-                activeSection === item.id ? "text-green-700" : "text-gray-500"
-              }`}
-            />
-            {item.label}
+            <FiLogOut className="text-base sm:text-lg text-green-600 font-semibold" />
+            <span className="text-dark">Logout</span>
           </button>
-        ))}
-      </div>
-    </div>
+        </div>
+      </aside>
+    </>
   );
 };
 
 export default Sidebar;
+
+

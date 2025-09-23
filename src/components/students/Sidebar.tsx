@@ -11,7 +11,7 @@ import {
   FiX,
 } from "react-icons/fi";
 import { Link, useNavigate } from "react-router-dom";
-import baseURL from "../../lib/environment";
+const apiURL = import.meta.env.VITE_API_URL;
 
 export type DashboardTab =
   | "startup"
@@ -31,7 +31,7 @@ const menuGroups: {
     {
       title: "Main",
       items: [
-        { key: "startup", label: "Dashboard", icon: <FiLayers />, path: "/dashboard/student" },
+        { key: "startup", label: "Dashboard", icon: <FiLayers />, path: "/dashboard/student/startup" },
         { key: "progress", label: "Progress", icon: <FiTrendingUp />, path: "/dashboard/student/progress" },
         { key: "events", label: "Events", icon: <FiCalendar />, path: "/dashboard/student/events" }
       ]
@@ -63,7 +63,7 @@ const Sidebar = ({
 
   const handleLogout = async () => {
     try {
-      const response = await fetch(`${baseURL}/auth/logout`, {
+      const response = await fetch(`${apiURL}/auth/logout`, {
         method: "POST",
         credentials: "include",
       });
@@ -97,7 +97,7 @@ const Sidebar = ({
         <div className="flex-shrink-0">
           <div className="flex items-center justify-between mb:4 sm:mb-6 ">
             <h2 className="text-base font-serif sm:text-lg font-semibold text-green-200 tracking-wide">
-              Admin Dashboard
+              Student Dashboard
             </h2>
             <button
               onClick={() => setOpen(false)}
