@@ -1,7 +1,13 @@
 
+
+// display notification to student 
 const NotificationList = () => {
+  // dummy data to show how the how notification will be recieved
   return (
-    <div>NotificationList</div>
+    <div className="bg-white h-full">
+
+
+    </div>
   )
 }
 
