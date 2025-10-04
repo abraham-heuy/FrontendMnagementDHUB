@@ -20,10 +20,10 @@ import NotificationList from "./components/students/Notifications/NotificationLi
 import ResourceList from "./components/students/Resources/ResourceList";
 import MentorList from "./components/students/Mentors/MentorList";
 import EventList from "./components/students/Events/EventList";
-import StartupTrack from "./components/students/Startups/StartupTrack";
 import StatusProgess from "./components/students/Progress/StatusProgess";
 import AdminPage from "./pages/Admin";
 import StudentPage from "./pages/Students";
+import Main from "./components/students/Main/Main";
 // Correct the import path and filename case if needed
 
 const App = () => {
@@ -56,7 +56,7 @@ const App = () => {
         {/* Student routes (protected) */}
         <Route element={<ProtectedRoute requiredRole="student" />}>
           <Route path="/dashboard/student/*" element={<StudentPage />}>
-            <Route path="startup" element={<StartupTrack />} />
+            <Route path="main" element={<Main />} />
             <Route path="progress" element={<StatusProgess />} />
             <Route path="events" element={<EventList />} />
             <Route path="mentors" element={<MentorList />} />

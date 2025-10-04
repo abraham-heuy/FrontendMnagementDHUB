@@ -14,7 +14,7 @@ import { Link, useNavigate } from "react-router-dom";
 const apiURL = import.meta.env.VITE_API_URL;
 
 export type DashboardTab =
-  | "startup"
+  | "main"
   | "progress"
   | "events"
   | "mentors"
@@ -31,7 +31,7 @@ const menuGroups: {
     {
       title: "Main",
       items: [
-        { key: "startup", label: "Dashboard", icon: <FiLayers />, path: "/dashboard/student/startup" },
+        { key: "main", label: "Dashboard", icon: <FiLayers />, path: "/dashboard/student/main" },
         { key: "progress", label: "Progress", icon: <FiTrendingUp />, path: "/dashboard/student/progress" },
         { key: "events", label: "Events", icon: <FiCalendar />, path: "/dashboard/student/events" }
       ]

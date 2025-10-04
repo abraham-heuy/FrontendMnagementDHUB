@@ -6,7 +6,7 @@ const apiURL = import.meta.env.VITE_API_URL
 export const usersService = {
   // Get all users
   getAll: async (): Promise<User[]> => {
-    const response = await fetch(`${apiURL}/users/getAll`, {
+    const response = await fetch(`${apiURL}/users`, {
       method: "GET",
       credentials: "include"
     });
@@ -29,10 +29,10 @@ export const usersService = {
     const data = await response.json()
     return data.user as User
   },
-  
-  update: async (userId: number, userData: Partial<Omit<User,"user_id" | "role">> & {role_id?:number}): Promise<void> => {
-    const response = await fetch(`${apiURL}/users/update/${userId}`, {
-      method: "PATCH",
+
+  update: async (userId: number, userData: Partial<Omit<User, "user_id" | "role">> & { role_id?: number }): Promise<void> => {
+    const response = await fetch(`${apiURL}/users/${userId}`, {
+      method: "PUT",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
       body: JSON.stringify(userData)
@@ -45,23 +45,10 @@ export const usersService = {
 
 
   // add new user
-  add: async (userData:Omit<User,"user_id" | "role"> &{role_id:number}): Promise<User> => {
-    const response = await fetch(`${apiURL}/users/add`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify(userData)
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to add user");
-    }
-    const data = await response.json()
-    return data.user as User
-  },
+  // Backend doesn't expose POST /users in current routes; omit add for now or implement backend
 
   // delete user
-  delete: async (userId: number): Promise<{message:string}> => {
+  delete: async (userId: number): Promise<{ message: string }> => {
     const response = await fetch(`${apiURL}/users/delete/${userId}`, {
       method: "DELETE",
       credentials: "include",
@@ -71,12 +58,12 @@ export const usersService = {
     }
     return response.json();
   },
-  
+
   // Assign mentors to students
   assignMentor: async (userId: number, mentorId: number[]): Promise<void> => {
     const response = await fetch(`${apiURL}/users/${userId}/assign-mentors`, {
       method: "PATCH",
-      
+
       headers: { "Content-Type": "application/json" },
       credentials: "include",
 

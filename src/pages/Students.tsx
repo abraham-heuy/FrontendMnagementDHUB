@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
-import { FiBell, FiMenu } from "react-icons/fi";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { FiBell, FiMenu, FiPlus } from "react-icons/fi";
 import Sidebar from "../components/students/Sidebar";
+import { profileService } from "../lib/services/profileService";
+import { notificationService } from "../lib/services/notificationService";
+import type { NotificationItem } from "../lib/services/notificationService";
 
 const apiURL = import.meta.env.VITE_API_URL;
 
@@ -11,12 +14,17 @@ interface User {
   role: string;
   image?: string;
 }
+
 const StudentPage = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User>({ name: "", email: "", role: "" });
   const [open, setOpen] = useState(false);
+  const location = useLocation();
 
-  // get user infomation from the current user?
+  // 🔔 Unread notifications
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // ✅ Get logged-in user info
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
@@ -32,6 +40,27 @@ const StudentPage = () => {
             email: data.email,
             role: data.role,
           });
+
+          // After auth, check if profile exists; if not, redirect
+          try {
+            const profile = await profileService.getMyProfile();
+            const isOnProfile = location.pathname.includes("/dashboard/student/profile");
+            if (!profile && !isOnProfile) {
+              navigate("/dashboard/student/profile");
+            }
+          } catch (_err) {
+            // ignore profile fetch errors here
+          }
+
+          // 🔔 Fetch notifications
+          try {
+            const notifs: NotificationItem[] = await notificationService.getMyNotifications();
+            const unread = notifs.filter((n) => !n.is_read).length;
+            setUnreadCount(unread);
+          } catch (err) {
+            console.error("Failed to load notifications", err);
+          }
+
         } else {
           navigate("/auth/login");
         }
@@ -41,9 +70,9 @@ const StudentPage = () => {
     };
 
     checkAuthStatus();
-  }, [navigate]);
+  }, [navigate, location.pathname]);
 
-  // function to get current tab from the url
+  // ✅ Get current tab name
   const getCurrentTab = () => {
     const path = location.pathname;
     if (path.endsWith("/student") || path.endsWith("/student/")) return "startup";
@@ -52,19 +81,13 @@ const StudentPage = () => {
 
   return (
     <div className="bg-secondary h-screen overflow-hidden flex">
-      {/* Sidebar - Positioned separately */}
-      <Sidebar
-        active={getCurrentTab()}
-        open={open}
-        setOpen={setOpen}
-      />
+      {/* Sidebar */}
+      <Sidebar active={getCurrentTab()} open={open} setOpen={setOpen} />
 
-      {/* Main Content Area */}
       <div className="flex-1 flex flex-col lg:ml-0">
-        {/* Top Navigation Bar - Fixed Position */}
+        {/* Top Nav */}
         <div className="bg-white/60 backdrop-blur-md fixed w-full shadow-md z-10 top-0 left-0">
           <div className="flex items-center justify-between p-4 md:px-6">
-            {/* Left side: Menu toggle + Title */}
             <div className="flex items-center">
               <button
                 onClick={() => setOpen(true)}
@@ -77,44 +100,50 @@ const StudentPage = () => {
               </h1>
             </div>
 
-            {/* Right side: Avatar and Notifications */}
-            <div className="flex items-center space-x-4">
-              {/* Avatar Component: Renders image or initial */}
-              <div className="flex gap-2 items-center bg-secondary rounded-lg py-1 px-3">
+            {/* Avatar + Notifications */}
+            <div className="flex items-center gap-4 space-x-4">
+              <div className="flex gap-5 items-center bg-secondary rounded-lg py-1 px-3">
                 {user.image ? (
-                  // If a user image exists, display it.
-                  <img
-                    className="w-8 h-8 rounded-full"
-                    src={user.image}
-                    alt={user.name}
-                  />
+                  <img className="w-8 h-8 rounded-full" src={user.image} alt={user.name} />
                 ) : (
-                  // If no image, display a circular placeholder with the first initial. 
-                  <div className="w-8 h-8 rounded-full bg-secondary text-gray-700 flex items-center justify-center font-bold text-sm">
+                  <div className="w-8 h-8 rounded-full bg-dark/20 text-gray-700 flex items-center justify-center font-bold text-sm">
                     {user.name && user.name.charAt(0).toUpperCase()}
                   </div>
                 )}
-                <span className="text-md font-medium text-gray-800">{user.name}</span>
+                <span className="text-md font-medium text-gray-800">
+                  <FiPlus
+                    className="inline-block mr-1 text-dark cursor-pointer"
+                    size={24}
+                    onClick={() => navigate("/dashboard/student/profile")}
+                  />
+                </span>
               </div>
 
-              {/* Notifications Button */}
+
+              {/* 🔔 Notifications */}
               <button
-                onClick={() => navigate("/dashboard/admin/notifications")}
-                className="relative p-2 text-gray-500 hover:text-green-600 transition-colors"
+                onClick={() => navigate("/dashboard/student/notifications")}
+                className="relative p-2 text-dark hover:text-green-600 transition-colors"
               >
-                <FiBell size={20} />
+                <FiBell size={22} />
+                {unreadCount > 0 && (
+                  <span className="absolute top-0  bg-red-600 text-white text-xs rounded-full px-1.5 py-0.5 -right-1">
+                    {unreadCount}
+                  </span>
+                )}
               </button>
+
             </div>
           </div>
         </div>
 
-        {/* Content Area - Adjusted to not be hidden by the fixed nav */}
-        <div className="space-y-6 p-4 md:p-6 mt-20 mb-20 min-h-screen overflow-auto">
+        {/* Page Content */}
+        <div className="space-y-6 p-4 md:p-6 mt-20   overflow-auto">
           <Outlet />
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default StudentPage
+export default StudentPage;
