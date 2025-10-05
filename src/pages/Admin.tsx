@@ -70,7 +70,7 @@ const AdminPage = () => {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col lg:ml-0">
         {/* Top Navigation Bar - Fixed Position */}
-        <div className="bg-white/60 backdrop-blur-md fixed w-full shadow-md z-10 top-0 left-0">
+        <div className="bg-white/10 backdrop-blur-md fixed w-full shadow-md z-10 top-0 left-0">
           <div className="flex items-center justify-between p-4 md:px-6">
             {/* Left side: Menu toggle + Title */}
             <div className="flex items-center">
@@ -117,7 +117,7 @@ const AdminPage = () => {
         </div>
 
         {/* Content Area - Adjusted to not be hidden by the fixed nav */}
-        <div className="space-y-6 p-4 md:p-6 mt-20 overflow-auto">
+        <div className="space-y-6 p-4 md:p-6 mt-10 overflow-auto">
           <Outlet />
         </div>
       </div>
