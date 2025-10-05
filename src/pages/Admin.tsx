@@ -117,7 +117,7 @@ const AdminPage = () => {
         </div>
 
         {/* Content Area - Adjusted to not be hidden by the fixed nav */}
-        <div className="space-y-6 p-4 md:p-6 mt-20 mb-20 min-h-screen overflow-auto">
+        <div className="space-y-6 p-4 md:p-6 mt-20 overflow-auto">
           <Outlet />
         </div>
       </div>

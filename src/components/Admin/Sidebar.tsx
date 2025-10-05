@@ -130,8 +130,8 @@ const Sidebar = ({
           <nav className="flex flex-col gap-4 sm:gap-6 overflow-y-auto">
             {menuGroups.map((group) => (
               <div key={group.title}>
-                <div className="rounded-md mb-4 flex justify-center items-center flex-col">
-                  <p className="text-green-100 text-[11px] sm:text-xs font-serif italic">
+                <div className="rounded-md mb-2 flex justify-center items-center flex-col">
+                  <p className="text-green-100 text-sm sm:text-xs font-serif italic">
                     {group.title}
                   </p>
                 </div>
@@ -141,21 +141,21 @@ const Sidebar = ({
                       key={item.key}
                       to={item.path}
                       onClick={() => setOpen(false)}
-                      className={`w-full flex items-center gap-2 sm:gap-3 px-3 py-4 sm:px-4 sm:py-3 rounded-lg transition-all duration-200 font-medium text-sm sm:text-base
+                      className={`w-full flex items-center gap-2 sm:gap-3 px-3 py-1 sm:px-4 sm:py-3 rounded-lg transition-all duration-200 font-medium text-sm sm:text-base
                           ${active === item.key
                           ? "bg-green-600 text-white shadow-md"
                           : "text-gray-700 hover:bg-green-50"
                         }`}
                     >
                       <span
-                        className={`text-base sm:text-lg ${active === item.key
+                        className={`text-sm sm:text-lg ${active === item.key
                           ? "text-white"
                           : "text-green-600"
                           }`}
                       >
                         {item.icon}
                       </span>
-                      <span>{item.label}</span>
+                      <span className="text-sm">{item.label}</span>
                     </Link>
                   ))}
                 </div>
@@ -164,7 +164,7 @@ const Sidebar = ({
           </nav>
         </div>
         {/* Bottom Section */}
-        <div className="flex-shrink-0 mt-2">
+        <div className="flex-shrink-0 mt-4">
           <div className="flex flex-col gap-1">
             {bottomMenu.map((item) => (
               <Link
@@ -178,9 +178,10 @@ const Sidebar = ({
                   }`}
               >
                 <span
-                  className={`text-base sm:text-lg ${active === item.key ? "text-white" : "text-green-600"
+                  className={`text-xs sm:text-sm ${active === item.key ? "text-white" : "text-green-600"
                     }`}
                 >
+                  
                   {item.icon}
                 </span>
                 <span>{item.lable}</span>
