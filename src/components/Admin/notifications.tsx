@@ -1,152 +1,158 @@
-import React, { useState } from "react";
-
-// Types
-interface Group {
-  id: number;
-  name: string;
-  members: { id: number; name: string; email: string }[];
-}
-
-interface Notification {
-  id: number;
-  subject: string;
-  type: "Alert" | "Update" | "Warning";
-  recipients: string[];
-  method: string[];
-  timestamp: string;
-}
+import React, { useState, useEffect } from "react";
+import {
+  getAllGroups,
+  createGroup,
+  addUserToGroup,
+  broadcastNotification,
+  getMyNotifications,
+  type NotificationGroup,
+  type NotificationItem,
+} from "../../lib/services/notificationService";
+import type { User } from "../../lib/types/user";
+import { getUsers } from "../../lib/services/usersService";
 
 const Notifications: React.FC = () => {
-  // Groups state
-  const [groups, setGroups] = useState<Group[]>([
-    {
-      id: 1,
-      name: "Pre-Incubation",
-      members: [
-        { id: 1, name: "Alice Johnson", email: "alice@example.com" },
-        { id: 2, name: "Bob Lee", email: "bob@example.com" },
-      ],
-    },
-    {
-      id: 2,
-      name: "Startup",
-      members: [{ id: 3, name: "Sophia Chen", email: "sophia@example.com" }],
-    },
-  ]);
+  const [groups, setGroups] = useState<NotificationGroup[]>([]);
+  const [history, setHistory] = useState<NotificationItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [users, setUsers] = useState<User[]>([]);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  // Notification history state
-  const [history, setHistory] = useState<Notification[]>([]);
-
-  // Form state
+  // Local form UI state
   const [form, setForm] = useState({
     subject: "",
     type: "Update",
     group: "All",
     otherRecipients: "",
-    method: [] as string[],
-    profileMsg: "",
-    emailMsg: "",
   });
-
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Modal states
-  const [showAddUser, setShowAddUser] = useState<null | number>(null); // groupId
+  const [showAddUser, setShowAddUser] = useState<null | string>(null);
   const [showCreateGroup, setShowCreateGroup] = useState(false);
 
   // Temp states for modals
-  const [newUser, setNewUser] = useState({ name: "", email: "" });
+  const [newUserId, setNewUserId] = useState("");
   const [newGroupName, setNewGroupName] = useState("");
+
+  // ✅ Load groups and notifications from backend
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [groupsData, notificationsData, usersData] = await Promise.all([
+          getAllGroups(),
+          getMyNotifications(),
+          getUsers(),
+        ]);
+        setGroups(groupsData);
+        //Remove duplicates by unique `id` + message + timestamp
+        const uniqueNotifications = Array.from(
+          new Map(
+            notificationsData.map((n) => [
+              `${n.id}-${n.message}-${n.created_at}`,
+              n,
+            ])
+          ).values()
+        );
+
+        //  sort newest first
+        uniqueNotifications.sort(
+          (a, b) =>
+            new Date(b.created_at ?? 0).getTime() -
+            new Date(a.created_at ?? 0).getTime()
+        );
+
+        setHistory(uniqueNotifications);
+
+        setUsers(usersData);
+      } catch (error) {
+        console.error("Error loading notifications:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   const handleFormChange = (field: string, value: any) => {
     setForm((prev) => ({ ...prev, [field]: value }));
-    setErrors((prev) => ({ ...prev, [field]: "" })); // clear field error
-  };
-
-  const handleMethodToggle = (method: string) => {
-    setForm((prev) => ({
-      ...prev,
-      method: prev.method.includes(method)
-        ? prev.method.filter((m) => m !== method)
-        : [...prev.method, method],
-    }));
-    setErrors((prev) => ({ ...prev, method: "" }));
+    setErrors((prev) => ({ ...prev, [field]: "" }));
   };
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    if (!form.subject.trim()) newErrors.subject = "Please enter a subject/title.";
+    if (!form.subject.trim())
+      newErrors.subject = "Please enter a subject/title.";
     if (!form.type) newErrors.type = "Please select a type.";
     if (form.group === "Other" && !form.otherRecipients.trim()) {
-      newErrors.otherRecipients = "Please provide recipient emails for 'Other'.";
+      newErrors.otherRecipients = "Please provide recipient IDs for 'Other'.";
     }
-    if (form.method.length === 0)
-      newErrors.method = "Select at least one delivery method.";
-    if (form.method.includes("Profile") && !form.profileMsg.trim())
-      newErrors.profileMsg = "Please enter a profile message.";
-    if (form.method.includes("Email") && !form.emailMsg.trim())
-      newErrors.emailMsg = "Please enter an email message.";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const sendNotification = () => {
+  /** ✅ Send notification to backend */
+  const handleSendNotification = async () => {
     if (!validateForm()) return;
 
-    const recipients =
-      form.group === "Other"
-        ? form.otherRecipients.split(",").map((e) => e.trim())
-        : groups.find((g) => g.name === form.group)?.members.map((m) => m.email) ||
-          ["All Students"];
+    try {
+      let payload: any = {
+        message: form.subject,
+        type: form.type.toLowerCase(),
+      };
 
-    const newNotif: Notification = {
-      id: history.length + 1,
-      subject: form.subject,
-      type: form.type as "Alert" | "Update" | "Warning",
-      recipients,
-      method: form.method,
-      timestamp: new Date().toLocaleString(),
-    };
+      if (form.group === "All") {
+        payload.all = true;
+      } else if (form.group === "Other") {
+        payload.recipientIds = form.otherRecipients
+          .split(",")
+          .map((e) => e.trim());
+      } else {
+        const selectedGroup = groups.find((g) => g.name === form.group);
+        if (selectedGroup) payload.groupId = selectedGroup.id;
+      }
 
-    setHistory([newNotif, ...history]);
-    setForm({
-      subject: "",
-      type: "Update",
-      group: "All",
-      otherRecipients: "",
-      method: [],
-      profileMsg: "",
-      emailMsg: "",
-    });
+      await broadcastNotification(payload);
+      const updatedHistory = await getMyNotifications();
+      setHistory(updatedHistory);
+
+      setForm({
+        subject: "",
+        type: "Update",
+        group: "All",
+        otherRecipients: "",
+      });
+    } catch (error) {
+      console.error("Error sending notification:", error);
+    }
   };
 
-  const addUserToGroup = (groupId: number) => {
-    if (!newUser.name.trim() || !newUser.email.trim()) return;
-    setGroups((prev) =>
-      prev.map((g) =>
-        g.id === groupId
-          ? {
-              ...g,
-              members: [
-                ...g.members,
-                { id: Date.now(), name: newUser.name, email: newUser.email },
-              ],
-            }
-          : g
-      )
-    );
-    setNewUser({ name: "", email: "" });
-    setShowAddUser(null);
+  /** ✅ Add user to group using only userId */
+  const handleAddUser = async (groupId: string) => {
+    if (!newUserId.trim()) return;
+    try {
+      await addUserToGroup(groupId, newUserId);
+      const updatedGroups = await getAllGroups();
+      setGroups(updatedGroups);
+      setNewUserId("");
+      setShowAddUser(null);
+    } catch (error) {
+      console.error("Failed to add user:", error);
+    }
   };
 
-  const createGroup = () => {
+  /** ✅ Create new group */
+  const handleCreateGroup = async () => {
     if (!newGroupName.trim()) return;
-    setGroups((prev) => [
-      ...prev,
-      { id: Date.now(), name: newGroupName, members: [] },
-    ]);
-    setNewGroupName("");
-    setShowCreateGroup(false);
+    try {
+      const newGroup = await createGroup(newGroupName);
+      setGroups([...groups, newGroup]);
+      setNewGroupName("");
+      setShowCreateGroup(false);
+    } catch (error) {
+      console.error("Failed to create group:", error);
+    }
   };
 
   return (
@@ -159,14 +165,13 @@ const Notifications: React.FC = () => {
         </p>
       </div>
 
-      {/* Container 1: Send Notification */}
+      {/* 📨 Send Notification */}
       <div className="bg-white shadow rounded-2xl p-4 lg:p-6 mb-8">
         <h3 className="text-lg font-semibold text-slate-800 mb-4">
           Send a Notification
         </h3>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left Column */}
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-1">Subject</label>
@@ -176,7 +181,9 @@ const Notifications: React.FC = () => {
                 onChange={(e) => handleFormChange("subject", e.target.value)}
                 className="w-full border rounded-xl p-2 text-sm focus:ring-2 focus:ring-sky-400"
               />
-              {errors.subject && <p className="text-red-500 text-xs mt-1">{errors.subject}</p>}
+              {errors.subject && (
+                <p className="text-red-500 text-xs mt-1">{errors.subject}</p>
+              )}
             </div>
 
             <div>
@@ -190,11 +197,12 @@ const Notifications: React.FC = () => {
                 <option>Alert</option>
                 <option>Warning</option>
               </select>
-              {errors.type && <p className="text-red-500 text-xs mt-1">{errors.type}</p>}
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Recipient Group</label>
+              <label className="block text-sm font-medium mb-1">
+                Recipient Group
+              </label>
               <select
                 value={form.group}
                 onChange={(e) => handleFormChange("group", e.target.value)}
@@ -209,80 +217,62 @@ const Notifications: React.FC = () => {
             </div>
 
             {form.group === "Other" && (
-              <div>
+              <div className="relative">
                 <label className="block text-sm font-medium mb-1">
-                  Other Recipients (comma-separated)
+                  Select Recipients
                 </label>
-                <textarea
-                  value={form.otherRecipients}
-                  onChange={(e) =>
-                    handleFormChange("otherRecipients", e.target.value)
-                  }
-                  className="w-full border rounded-xl p-2 text-sm focus:ring-2 focus:ring-sky-400"
-                />
-                {errors.otherRecipients && (
-                  <p className="text-red-500 text-xs mt-1">{errors.otherRecipients}</p>
+
+                <div className="flex items-center border rounded-xl p-2 text-sm bg-white focus-within:ring-2 focus-within:ring-sky-400">
+                  <input
+                    type="text"
+                    value={form.otherRecipients}
+                    onChange={(e) =>
+                      handleFormChange("otherRecipients", e.target.value)
+                    }
+                    placeholder="Select users..."
+                    className="flex-1 outline-none bg-transparent"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setDropdownOpen((prev) => !prev)}
+                    className="ml-2 text-slate-400 hover:text-sky-500"
+                  >
+                    ▼
+                  </button>
+                </div>
+
+                {dropdownOpen && (
+                  <div className="absolute z-10 bg-white border rounded-xl mt-1 w-full max-h-48 overflow-y-auto shadow-lg">
+                    {users.map((user) => (
+                      <div
+                        key={user.id}
+                        onClick={() => {
+                          const current = form.otherRecipients
+                            ? form.otherRecipients
+                                .split(",")
+                                .map((v) => v.trim())
+                            : [];
+                          if (!current.includes(user.id)) {
+                            handleFormChange(
+                              "otherRecipients",
+                              [...current, user.id].join(", ")
+                            );
+                          }
+                        }}
+                        className="px-3 py-2 text-sm hover:bg-sky-50 cursor-pointer"
+                      >
+                        {user.fullName} ({user.email})
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             )}
           </div>
 
-          {/* Right Column */}
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Delivery Method</label>
-              <div className="flex gap-4 flex-wrap">
-                {["Profile", "Email", "Both"].map((method) => (
-                  <label
-                    key={method}
-                    className="flex items-center gap-2 text-sm text-slate-700"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={form.method.includes(method)}
-                      onChange={() => handleMethodToggle(method)}
-                    />
-                    {method}
-                  </label>
-                ))}
-              </div>
-              {errors.method && <p className="text-red-500 text-xs mt-1">{errors.method}</p>}
-            </div>
-
-            {form.method.includes("Profile") && (
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Profile Notification Message
-                </label>
-                <textarea
-                  value={form.profileMsg}
-                  onChange={(e) => handleFormChange("profileMsg", e.target.value)}
-                  className="w-full border rounded-xl p-2 text-sm focus:ring-2 focus:ring-sky-400"
-                />
-                {errors.profileMsg && (
-                  <p className="text-red-500 text-xs mt-1">{errors.profileMsg}</p>
-                )}
-              </div>
-            )}
-
-            {form.method.includes("Email") && (
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Email Notification Message
-                </label>
-                <textarea
-                  value={form.emailMsg}
-                  onChange={(e) => handleFormChange("emailMsg", e.target.value)}
-                  className="w-full border rounded-xl p-2 text-sm focus:ring-2 focus:ring-sky-400"
-                />
-                {errors.emailMsg && (
-                  <p className="text-red-500 text-xs mt-1">{errors.emailMsg}</p>
-                )}
-              </div>
-            )}
-
             <button
-              onClick={sendNotification}
+              onClick={handleSendNotification}
               className="w-full bg-sky-500 text-white py-2 rounded-xl hover:bg-sky-600 transition"
             >
               Send Notification
@@ -291,8 +281,8 @@ const Notifications: React.FC = () => {
         </div>
       </div>
 
- {/* Container 2: Manage Groups */}
- <div className="bg-white shadow rounded-2xl p-4 lg:p-6 mb-8">
+      {/* 👥 Manage Groups */}
+      <div className="bg-white shadow rounded-2xl p-4 lg:p-6 mb-8">
         <h3 className="text-lg font-semibold text-slate-800 mb-4">
           Manage Groups
         </h3>
@@ -307,17 +297,9 @@ const Notifications: React.FC = () => {
                 {group.name} ({group.members.length})
               </h4>
               <ul className="space-y-2">
-                {group.members.map((member) => (
-                  <li
-                    key={member.id}
-                    className="flex justify-between items-center text-sm"
-                  >
-                    <span>
-                      {member.name} ({member.email})
-                    </span>
-                    <button className="text-red-500 hover:text-red-700">
-                      ✕
-                    </button>
+                {group.members.map((m) => (
+                  <li key={m.id} className="text-sm">
+                    {m.fullName} ({m.email})
                   </li>
                 ))}
               </ul>
@@ -338,55 +320,68 @@ const Notifications: React.FC = () => {
         </div>
       </div>
 
-      {/* Container 3: Notification History */}
-      <div className="bg-white shadow rounded-2xl p-4 lg:p-6">
-        <h3 className="text-lg font-semibold text-slate-800 mb-4">
-          Notification History
-        </h3>
+      {history.map((notif, index) => {
+        const colorClass =
+          notif.type?.toLowerCase() === "alert"
+            ? "border-yellow-400 bg-yellow-50"
+            : notif.type?.toLowerCase() === "warning"
+            ? "border-red-400 bg-red-50"
+            : "border-sky-400 bg-sky-50";
 
-        {history.length === 0 ? (
-          <p className="text-sm text-slate-500">No notifications sent yet</p>
-        ) : (
-          <ul className="space-y-3">
-            {history.map((notif) => (
-              <li
-                key={notif.id}
-                className="border rounded-xl p-3 flex flex-col sm:flex-row sm:justify-between sm:items-center hover:shadow transition"
-              >
-                <div>
-                  <p className="font-medium text-slate-700">{notif.subject}</p>
-                  <p className="text-xs text-slate-500">
-                    {notif.type} • Sent to {notif.recipients.length} recipients •{" "}
-                    {notif.timestamp}
-                  </p>
-                </div>
-                <span className="mt-2 sm:mt-0 text-xs px-2 py-1 rounded-lg bg-sky-100 text-sky-600">
-                  {notif.method.join(", ")}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+        return (
+          <li
+            key={`${notif.id}-${index}`} // ✅ ensures key uniqueness
+            className={`border-l-4 ${colorClass} rounded-xl p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center shadow-sm`}
+          >
+            <div className="flex-1">
+              <p className="font-medium text-slate-800">{notif.message}</p>
+              <p className="text-xs text-slate-500 mt-1">
+                {notif.sender?.name && (
+                  <span>From: {notif.sender.name} • </span>
+                )}
+                {notif.recipient?.name && (
+                  <span>To: {notif.recipient.name} • </span>
+                )}
+                {notif.created_at && (
+                  <span>{new Date(notif.created_at).toLocaleString()}</span>
+                )}
+              </p>
+            </div>
+            <span
+              className={`mt-2 sm:mt-0 text-xs font-semibold px-2 py-1 rounded-lg ${
+                notif.type?.toLowerCase() === "alert"
+                  ? "bg-yellow-200 text-yellow-800"
+                  : notif.type?.toLowerCase() === "warning"
+                  ? "bg-red-200 text-red-800"
+                  : "bg-sky-200 text-sky-800"
+              }`}
+            >
+              {notif.type || "Update"}
+            </span>
+          </li>
+        );
+      })}
+
       {/* Add User Modal */}
       {showAddUser && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center">
           <div className="bg-white rounded-2xl p-6 w-96 shadow-lg">
-            <h3 className="text-lg font-semibold mb-4">Add User</h3>
-            <label className="block text-sm font-medium mb-1">Name</label>
-            <input
-              type="text"
-              value={newUser.name}
-              onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
+            <label className="block text-sm font-medium mb-1">
+              Select User
+            </label>
+            <select
+              value={newUserId}
+              onChange={(e) => setNewUserId(e.target.value)}
               className="w-full border rounded-xl p-2 text-sm mb-3 focus:ring-2 focus:ring-sky-400"
-            />
-            <label className="block text-sm font-medium mb-1">Email</label>
-            <input
-              type="email"
-              value={newUser.email}
-              onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-              className="w-full border rounded-xl p-2 text-sm mb-3 focus:ring-2 focus:ring-sky-400"
-            />
+            >
+              <option value="">-- Choose a user --</option>
+              {users.map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.fullName} ({user.email})
+                </option>
+              ))}
+            </select>
+
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowAddUser(null)}
@@ -395,7 +390,7 @@ const Notifications: React.FC = () => {
                 Cancel
               </button>
               <button
-                onClick={() => addUserToGroup(showAddUser)}
+                onClick={() => handleAddUser(showAddUser)}
                 className="px-4 py-2 text-sm bg-sky-500 text-white rounded-xl hover:bg-sky-600"
               >
                 Save
@@ -425,7 +420,7 @@ const Notifications: React.FC = () => {
                 Cancel
               </button>
               <button
-                onClick={createGroup}
+                onClick={handleCreateGroup}
                 className="px-4 py-2 text-sm bg-sky-500 text-white rounded-xl hover:bg-sky-600"
               >
                 Create

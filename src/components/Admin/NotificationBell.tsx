@@ -1,25 +1,77 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Bell } from "lucide-react";
+import { getNotifications, markAsRead } from "../../lib/services/notificationService";
 
 interface Notification {
-  id: number;
+  id: string;
   message: string;
-  time: string;
+  created_at?: string;
+  is_read?: boolean;
 }
-
-const mockNotifications: Notification[] = [
-  { id: 1, message: "New student registered", time: "2m ago" },
-  { id: 2, message: "Event schedule updated", time: "10m ago" },
-];
 
 const NotificationBell: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [notifications, setNotifications] = useState(mockNotifications);
-  const [unreadCount, setUnreadCount] = useState(mockNotifications.length);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
+  // ✅ Fetch notifications from backend
+  useEffect(() => {
+    const fetchUserNotifications = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const data = await getNotifications();
+
+        // Deduplicate (just in case)
+        const unique = Array.from(
+          new Map(data.map((n) => [n.id, n])).values()
+        );
+
+        // Sort latest first
+        unique.sort(
+          (a, b) =>
+            new Date(b.created_at ?? 0).getTime() -
+            new Date(a.created_at ?? 0).getTime()
+        );
+
+        setNotifications(unique);
+        setUnreadCount(unique.filter((n) => !n.is_read).length);
+      } catch (err: any) {
+        setError("Failed to load notifications");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserNotifications();
+  }, []);
+
+  // ✅ Toggle popup visibility
   const togglePopup = () => {
-    setIsOpen(!isOpen);
-    if (!isOpen) setUnreadCount(0);
+    setIsOpen((prev) => !prev);
+    if (!isOpen) setUnreadCount(0); // Clear badge when opened
+  };
+
+  // ✅ Mark single notification as read
+  const handleMarkAsRead = async (id: string) => {
+    try {
+      await markAsRead(id);
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
+      );
+    } catch (err) {
+      console.error("Failed to mark as read:", err);
+    }
+  };
+
+  // ✅ Clear all notifications
+  const handleClearAll = () => {
+    setNotifications([]);
+    setUnreadCount(0);
   };
 
   return (
@@ -37,7 +89,7 @@ const NotificationBell: React.FC = () => {
         )}
       </button>
 
-      {/* Notification Popup */}
+      {/* Popup */}
       {isOpen && (
         <>
           {/* Mobile background overlay */}
@@ -57,7 +109,6 @@ const NotificationBell: React.FC = () => {
               md:block
             `}
             style={{
-              // Center on mobile for better look
               left: "50%",
               transform: "translateX(-50%)",
             }}
@@ -66,21 +117,34 @@ const NotificationBell: React.FC = () => {
               <h3 className="font-semibold text-gray-700">Notifications</h3>
               <button
                 className="text-sm text-blue-500 hover:underline"
-                onClick={() => setNotifications([])}
+                onClick={handleClearAll}
               >
                 Clear All
               </button>
             </div>
 
             <div className="max-h-60 overflow-y-auto">
-              {notifications.length > 0 ? (
+              {loading ? (
+                <p className="text-center text-sm text-gray-500 py-6">
+                  Loading...
+                </p>
+              ) : error ? (
+                <p className="text-center text-sm text-red-500 py-6">
+                  {error}
+                </p>
+              ) : notifications.length > 0 ? (
                 notifications.map((n) => (
                   <div
                     key={n.id}
-                    className="px-4 py-3 border-b hover:bg-gray-50 cursor-pointer"
+                    className={`px-4 py-3 border-b hover:bg-gray-50 cursor-pointer ${
+                      n.is_read ? "opacity-70" : ""
+                    }`}
+                    onClick={() => handleMarkAsRead(n.id)}
                   >
                     <p className="text-sm text-gray-800">{n.message}</p>
-                    <span className="text-xs text-gray-500">{n.time}</span>
+                    <span className="text-xs text-gray-500">
+                      {new Date(n.created_at ?? "").toLocaleString()}
+                    </span>
                   </div>
                 ))
               ) : (
