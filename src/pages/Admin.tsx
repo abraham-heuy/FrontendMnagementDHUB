@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import Sidebar from "../components/Admin/Sidebar";
 import { Outlet, useNavigate } from "react-router-dom";
-import { FiBell, FiMenu } from "react-icons/fi";
+import { FiMenu } from "react-icons/fi";
+import NotificationBell from "../components/Admin/NotificationBell";
 
 interface User {
   name: string;
@@ -14,14 +15,9 @@ const apiURL = import.meta.env.VITE_API_URL;
 
 const AdminPage = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState<User>({
-    name: "",
-    email: "",
-    role: ""
-  });
+  const [user, setUser] = useState<User>({ name: "", email: "", role: "" });
   const [open, setOpen] = useState(false);
 
-  // Fetches user information from the API on component mount.
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
@@ -30,28 +26,23 @@ const AdminPage = () => {
           credentials: "include",
         });
         const data = await response.json();
-
         if (response.ok) {
-          // Update the user state with fetched data, including the image.
           setUser({
             name: data.fullName,
             email: data.email,
             role: data.role,
-            image: data.image // Make sure your API returns an image URL.
+            image: data.image,
           });
         } else {
-          // Redirect to login if authentication fails.
           navigate("/admin/login");
         }
-      } catch (error) {
-        // Redirect to login on network or other errors.
+      } catch {
         navigate("/admin/login");
       }
     };
     checkAuthStatus();
   }, [navigate]);
 
-  // Gets the current tab name from the URL pathname.
   const getCurrentTab = () => {
     const path = location.pathname;
     if (path.endsWith("/admin") || path.endsWith("/admin/")) return "dashboard";
@@ -59,67 +50,51 @@ const AdminPage = () => {
   };
 
   return (
-    <div className="bg-secondary h-screen overflow-hidden flex">
-      {/* Sidebar - Positioned separately */}
-      <Sidebar
-        active={getCurrentTab()}
-        open={open}
-        setOpen={setOpen}
-      />
+    <div className="flex h-screen bg-secondary overflow-hidden">
+      {/* Sidebar (fixed, non-scrollable) */}
+      <Sidebar active={getCurrentTab()} open={open} setOpen={setOpen} />
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col lg:ml-0">
-        {/* Top Navigation Bar - Fixed Position */}
-        <div className="bg-white/10 backdrop-blur-md fixed w-full shadow-md z-10 top-0 left-0">
-          <div className="flex items-center justify-between p-4 md:px-6">
-            {/* Left side: Menu toggle + Title */}
+      {/* Main Area */}
+      <div className="flex-1 flex flex-col">
+        {/* Topbar */}
+        <header className="fixed top-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-lg shadow-sm border-b border-gray-200">
+          <div className="flex items-center justify-between px-4 md:px-6 py-3">
             <div className="flex items-center">
               <button
                 onClick={() => setOpen(true)}
-                className="mr-4 cursor-pointer text-gray-400 lg:hidden"
+                className="mr-4 cursor-pointer text-gray-600 hover:text-green-600 transition lg:hidden"
               >
                 <FiMenu size={24} />
               </button>
-              <h1 className="text-xl font-bold text-gray-600 capitalize">
+              <h1 className="text-lg md:text-xl font-semibold text-gray-800 capitalize tracking-wide">
                 {getCurrentTab() === "home" ? "Dashboard" : getCurrentTab()}
               </h1>
             </div>
 
-            {/* Right side: Avatar and Notifications */}
-            <div className="flex items-center space-x-4">
-              {/* Avatar Component: Renders image or initial */}
-              <div className="flex gap-2 items-center bg-secondary rounded-lg py-1 px-3">
+            <div className="flex items-center gap-4">
+              <NotificationBell />
+              <div className="flex items-center gap-2 bg-green-50 hover:bg-green-100 px-3 py-1 rounded-full transition cursor-pointer">
                 {user.image ? (
-                  // If a user image exists, display it.
                   <img
-                    className="w-8 h-8 rounded-full"
                     src={user.image}
                     alt={user.name}
+                    className="w-8 h-8 rounded-full object-cover"
                   />
                 ) : (
-                  // If no image, display a circular placeholder with the first initial. 
-                  <div className="w-8 h-8 rounded-full bg-secondary text-gray-700 flex items-center justify-center font-bold text-sm">
-                    {user.name && user.name.charAt(0).toUpperCase()}
+                  <div className="w-8 h-8 flex items-center justify-center rounded-full bg-green-500 text-white font-bold text-sm">
+                    {user.name ? user.name.charAt(0).toUpperCase() : "A"}
                   </div>
                 )}
-                <span className="text-md font-medium text-gray-800">{user.name}</span>
+                <span className="text-sm font-medium text-gray-700">{user.name}</span>
               </div>
-
-              {/* Notifications Button */}
-              <button
-                onClick={() => navigate("/dashboard/admin/notifications")}
-                className="relative p-2 text-gray-500 hover:text-green-600 transition-colors"
-              >
-                <FiBell size={20} />
-              </button>
             </div>
           </div>
-        </div>
+        </header>
 
-        {/* Content Area - Adjusted to not be hidden by the fixed nav */}
-        <div className="space-y-6 p-4 md:p-6 mt-10 overflow-auto">
+        {/* ✅ Scrollable Content Only */}
+        <main className="flex-1 mt-16 overflow-y-auto bg-gray-50 p-4 md:p-6 rounded-t-lg">
           <Outlet />
-        </div>
+        </main>
       </div>
     </div>
   );

@@ -1,4 +1,3 @@
-// src/components/Admin/NotificationBell.tsx
 import React, { useState } from "react";
 import { Bell } from "lucide-react";
 
@@ -11,7 +10,6 @@ interface Notification {
 const mockNotifications: Notification[] = [
   { id: 1, message: "New student registered", time: "2m ago" },
   { id: 2, message: "Event schedule updated", time: "10m ago" },
-  // { id: 3, message: "Application received", time: "1h ago" },
 ];
 
 const NotificationBell: React.FC = () => {
@@ -21,16 +19,16 @@ const NotificationBell: React.FC = () => {
 
   const togglePopup = () => {
     setIsOpen(!isOpen);
-    if (!isOpen) {
-      // Reset unread count when opening
-      setUnreadCount(0);
-    }
+    if (!isOpen) setUnreadCount(0);
   };
 
   return (
     <div className="relative">
-      {/* Bell with Badge */}
-      <button onClick={togglePopup} className="relative focus:outline-none">
+      {/* Bell Icon */}
+      <button
+        onClick={togglePopup}
+        className="relative focus:outline-none transition-transform hover:scale-105"
+      >
         <Bell className="text-gray-600 w-6 h-6" />
         {unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
@@ -39,16 +37,31 @@ const NotificationBell: React.FC = () => {
         )}
       </button>
 
-      {/* Popup */}
+      {/* Notification Popup */}
       {isOpen && (
         <>
-          {/* Background Blur for mobile modal feel */}
+          {/* Mobile background overlay */}
           <div
-            className="fixed inset-0 bg-black/30 backdrop-blur-sm md:hidden"
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm md:hidden z-40"
             onClick={() => setIsOpen(false)}
           ></div>
 
-          <div className="absolute right-0 mt-2 w-72 bg-white shadow-lg rounded-xl border z-50">
+          {/* Popup container */}
+          <div
+            className={`
+              absolute mt-2 w-72 bg-white rounded-xl shadow-xl border z-50 
+              transform transition-all duration-200 
+              origin-top-right 
+              md:right-0 md:translate-x-0
+              ${isOpen ? "scale-100 opacity-100" : "scale-95 opacity-0"}
+              md:block
+            `}
+            style={{
+              // Center on mobile for better look
+              left: "50%",
+              transform: "translateX(-50%)",
+            }}
+          >
             <div className="p-3 border-b flex justify-between items-center">
               <h3 className="font-semibold text-gray-700">Notifications</h3>
               <button
@@ -58,6 +71,7 @@ const NotificationBell: React.FC = () => {
                 Clear All
               </button>
             </div>
+
             <div className="max-h-60 overflow-y-auto">
               {notifications.length > 0 ? (
                 notifications.map((n) => (

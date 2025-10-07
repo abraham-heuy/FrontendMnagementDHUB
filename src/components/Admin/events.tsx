@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Calendar,
   Clock,
@@ -11,59 +11,12 @@ import {
   Edit,
   ChevronRight,
 } from "lucide-react";
-
-type EventItem = {
-  id: string;
-  title: string;
-  description: string;
-  location: string;
-  objective: string;
-  date: string;      // YYYY-MM-DD
-  timeFrom: string;  // HH:MM
-  timeTo: string;    // HH:MM
-  details?: string;
-  createdAt: string;
-};
-
-const initialEvents: EventItem[] = [
-  {
-    id: crypto.randomUUID(),
-    title: "Pre-Incubation Kickoff",
-    description: "Welcome and orientation for new cohort.",
-    location: "DeSIC Hall A",
-    objective: "Introduce program structure & expectations.",
-    date: "2025-09-20",
-    timeFrom: "09:00",
-    timeTo: "11:00",
-    details: "Bring your student ID. Light snacks provided.",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: crypto.randomUUID(),
-    title: "Mentor Matching Session",
-    description: "Speed-matching to pair mentors & mentees.",
-    location: "Innovation Room 2",
-    objective: "Assign mentors based on startup stage.",
-    date: "2025-09-21",
-    timeFrom: "14:00",
-    timeTo: "16:00",
-    details:
-      "Short pitches (2 mins) from each student. Mentors rotate by table.",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: crypto.randomUUID(),
-    title: "Pitch Practice Workshop",
-    description: "Improve storytelling & structure.",
-    location: "Lab 3",
-    objective: "Enhance pitch clarity & timing.",
-    date: "2025-09-25",
-    timeFrom: "10:00",
-    timeTo: "12:00",
-    details: "Slides optional. Recording available after the session.",
-    createdAt: new Date().toISOString(),
-  },
-];
+import {
+  createEvent,
+  getEvents,
+  updateEvent,
+  deleteEvent,
+} from "../../lib/services/eventService";
 
 const emptyForm = {
   title: "",
@@ -74,25 +27,42 @@ const emptyForm = {
   timeFrom: "",
   timeTo: "",
   details: "",
+  category: "hackathon",
 };
+import type { Event } from "../../lib/types/events";
 
 const Events: React.FC = () => {
-  const [events, setEvents] = useState<EventItem[]>(initialEvents);
+  const [events, setEvents] = useState<Event[]>([]);
   const [form, setForm] = useState({ ...emptyForm });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
 
   const [query, setQuery] = useState("");
   const [selectedDate, setSelectedDate] = useState<string>(""); // filter by date (optional)
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [activeEvent, setActiveEvent] = useState<EventItem | null>(null);
+  const [activeEvent, setActiveEvent] = useState<Event | null>(null);
   const [editing, setEditing] = useState(false);
-  const [editDraft, setEditDraft] = useState<EventItem | null>(null);
-
-  // --- derived lists
+  const [editDraft, setEditDraft] = useState<Event | null>(null);
+  const [customCategory, setCustomCategory] = useState("");
+  //fetch the events!
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const list = await getEvents();
+        setEvents(list);
+      } catch (err) {
+        console.error("Failed to fetch events:", err);
+      }
+    };
+    fetchData();
+  }, []);
   const filteredEvents = useMemo(() => {
-    let list = [...events].sort((a, b) => (a.date < b.date ? 1 : -1)); // most recent first
+    let list = [...events].sort((a, b) => (a.date < b.date ? 1 : -1));
     if (query.trim()) {
       const q = query.toLowerCase();
       list = list.filter(
@@ -102,9 +72,7 @@ const Events: React.FC = () => {
           e.location.toLowerCase().includes(q)
       );
     }
-    if (selectedDate) {
-      list = list.filter((e) => e.date === selectedDate);
-    }
+    if (selectedDate) list = list.filter((e) => e.date === selectedDate);
     return list;
   }, [events, query, selectedDate]);
 
@@ -112,14 +80,19 @@ const Events: React.FC = () => {
   const validate = (payload: typeof form) => {
     const next: Record<string, string> = {};
     if (!payload.title.trim()) next.title = "Title is required.";
-    if (!payload.description.trim()) next.description = "Description is required.";
+    if (!payload.description.trim())
+      next.description = "Description is required.";
     if (!payload.location.trim()) next.location = "Location is required.";
     if (!payload.objective.trim()) next.objective = "Objective is required.";
     if (!payload.date) next.date = "Date is required.";
     if (!payload.timeFrom) next.timeFrom = "Start time is required.";
     if (!payload.timeTo) next.timeTo = "End time is required.";
     // simple time window check
-    if (payload.timeFrom && payload.timeTo && payload.timeFrom >= payload.timeTo) {
+    if (
+      payload.timeFrom &&
+      payload.timeTo &&
+      payload.timeFrom >= payload.timeTo
+    ) {
       next.timeTo = "End time must be after start time.";
     }
     setErrors(next);
@@ -131,23 +104,7 @@ const Events: React.FC = () => {
     setForm({ ...emptyForm });
     setErrors({});
   };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validate(form)) return;
-    setSubmitting(true);
-
-    const newEvent: EventItem = {
-      id: crypto.randomUUID(),
-      ...form,
-      createdAt: new Date().toISOString(),
-    };
-    setEvents((prev) => [newEvent, ...prev]);
-    setSubmitting(false);
-    resetForm();
-  };
-
-  const openDetails = (item: EventItem) => {
+  const openDetails = (item: Event) => {
     setActiveEvent(item);
     setEditDraft(null);
     setEditing(false);
@@ -157,40 +114,69 @@ const Events: React.FC = () => {
   const closeModal = () => {
     setModalOpen(false);
     setActiveEvent(null);
+    setEditing(false);
     setEditDraft(null);
-    setEditing(false);
   };
+  // ✅ Create event
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validate(form)) return;
 
-  const startEdit = () => {
-    if (!activeEvent) return;
-    setEditDraft({ ...activeEvent });
-    setEditing(true);
-  };
+    setSubmitting(true);
+    setMessage(null);
 
-  const saveEdit = () => {
-    if (!editDraft) return;
-    // quick validation
-    const basicFields = [
-      "title",
-      "description",
-      "location",
-      "objective",
-      "date",
-      "timeFrom",
-      "timeTo",
-    ] as const;
-    for (const key of basicFields) {
-      // @ts-ignore
-      if (!editDraft[key] || String(editDraft[key]).trim() === "") return;
+    const payload = {
+      ...form,
+      category:
+        form.category === "other" && customCategory.trim()
+          ? customCategory.toLowerCase()
+          : form.category?.toLowerCase(),
+    };
+
+    try {
+      const newEvent = await createEvent(payload);
+      setEvents((prev) => [newEvent, ...prev]);
+      resetForm();
+      setMessage({ type: "success", text: "✅ Event created successfully!" });
+    } catch (err) {
+      console.error("Error creating event:", err);
+      setMessage({ type: "error", text: "❌ Failed to create event." });
+    } finally {
+      setSubmitting(false);
     }
-    setEvents((prev) => prev.map((e) => (e.id === editDraft.id ? editDraft : e)));
-    setActiveEvent(editDraft);
-    setEditing(false);
   };
 
-  const deleteEvent = (id: string) => {
-    setEvents((prev) => prev.filter((e) => e.id !== id));
-    closeModal();
+  // ✅ Edit event
+  const saveEdit = async () => {
+    if (!editDraft) return;
+    setMessage(null);
+    try {
+      const updated = await updateEvent(editDraft.id, {
+        ...editDraft,
+        category: editDraft.category?.toLowerCase(),
+      });
+      setEvents((prev) => prev.map((e) => (e.id === updated.id ? updated : e)));
+      setActiveEvent(updated);
+      setEditing(false);
+      setMessage({ type: "success", text: "✅ Event updated successfully!" });
+    } catch (err) {
+      console.error("Failed to update event:", err);
+      setMessage({ type: "error", text: "❌ Failed to update event." });
+    }
+  };
+
+  // ✅ Delete event
+  const handleDelete = async (id: string) => {
+    setMessage(null);
+    try {
+      await deleteEvent(id);
+      setEvents((prev) => prev.filter((e) => e.id !== id));
+      closeModal();
+      setMessage({ type: "success", text: "🗑️ Event deleted successfully!" });
+    } catch (err) {
+      console.error("Error deleting event:", err);
+      setMessage({ type: "error", text: "❌ Failed to delete event." });
+    }
   };
 
   return (
@@ -232,14 +218,18 @@ const Events: React.FC = () => {
               <Plus className="w-5 h-5 text-sky-500" /> Post an event
             </h2>
             <p className="text-sm text-slate-500">
-              Fill in the details below to publish a new event. All fields are required.
+              Fill in the details below to publish a new event. All fields are
+              required.
             </p>
           </div>
           <Info className="w-5 h-5 text-slate-300 hidden sm:block" />
         </div>
 
         {/* FORM */}
-        <form onSubmit={handleSubmit} className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+        <form
+          onSubmit={handleSubmit}
+          className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6"
+        >
           {/* LEFT column */}
           <div className="space-y-4">
             {/* Title */}
@@ -249,7 +239,9 @@ const Events: React.FC = () => {
               </label>
               <input
                 className={`mt-1 w-full rounded-xl border px-3 py-2 text-sm outline-none transition focus:ring-2 ${
-                  errors.title ? "border-red-300 focus:ring-red-200" : "border-slate-200 focus:ring-sky-300"
+                  errors.title
+                    ? "border-red-300 focus:ring-red-200"
+                    : "border-slate-200 focus:ring-sky-300"
                 }`}
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
@@ -257,7 +249,9 @@ const Events: React.FC = () => {
                 aria-describedby={errors.title ? "title-error" : undefined}
               />
               {errors.title && (
-                <p id="title-error" className="mt-1 text-xs text-red-600">{errors.title}</p>
+                <p id="title-error" className="mt-1 text-xs text-red-600">
+                  {errors.title}
+                </p>
               )}
             </div>
 
@@ -268,15 +262,20 @@ const Events: React.FC = () => {
               </label>
               <input
                 className={`mt-1 w-full rounded-xl border px-3 py-2 text-sm outline-none transition focus:ring-2 ${
-                  errors.description ? "border-red-300 focus:ring-red-200" : "border-slate-200 focus:ring-sky-300"
+                  errors.description
+                    ? "border-red-300 focus:ring-red-200"
+                    : "border-slate-200 focus:ring-sky-300"
                 }`}
                 value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, description: e.target.value })
+                }
                 aria-invalid={!!errors.description}
-                aria-describedby={errors.description ? "desc-error" : undefined}
               />
               {errors.description && (
-                <p id="desc-error" className="mt-1 text-xs text-red-600">{errors.description}</p>
+                <p className="mt-1 text-xs text-red-600">
+                  {errors.description}
+                </p>
               )}
             </div>
 
@@ -289,16 +288,18 @@ const Events: React.FC = () => {
                 <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   className={`mt-1 w-full rounded-xl border pl-9 pr-3 py-2 text-sm outline-none transition focus:ring-2 ${
-                    errors.location ? "border-red-300 focus:ring-red-200" : "border-slate-200 focus:ring-sky-300"
+                    errors.location
+                      ? "border-red-300 focus:ring-red-200"
+                      : "border-slate-200 focus:ring-sky-300"
                   }`}
                   value={form.location}
-                  onChange={(e) => setForm({ ...form, location: e.target.value })}
-                  aria-invalid={!!errors.location}
-                  aria-describedby={errors.location ? "loc-error" : undefined}
+                  onChange={(e) =>
+                    setForm({ ...form, location: e.target.value })
+                  }
                 />
               </div>
               {errors.location && (
-                <p id="loc-error" className="mt-1 text-xs text-red-600">{errors.location}</p>
+                <p className="mt-1 text-xs text-red-600">{errors.location}</p>
               )}
             </div>
 
@@ -309,15 +310,17 @@ const Events: React.FC = () => {
               </label>
               <input
                 className={`mt-1 w-full rounded-xl border px-3 py-2 text-sm outline-none transition focus:ring-2 ${
-                  errors.objective ? "border-red-300 focus:ring-red-200" : "border-slate-200 focus:ring-sky-300"
+                  errors.objective
+                    ? "border-red-300 focus:ring-red-200"
+                    : "border-slate-200 focus:ring-sky-300"
                 }`}
                 value={form.objective}
-                onChange={(e) => setForm({ ...form, objective: e.target.value })}
-                aria-invalid={!!errors.objective}
-                aria-describedby={errors.objective ? "obj-error" : undefined}
+                onChange={(e) =>
+                  setForm({ ...form, objective: e.target.value })
+                }
               />
               {errors.objective && (
-                <p id="obj-error" className="mt-1 text-xs text-red-600">{errors.objective}</p>
+                <p className="mt-1 text-xs text-red-600">{errors.objective}</p>
               )}
             </div>
           </div>
@@ -333,21 +336,21 @@ const Events: React.FC = () => {
                 <input
                   type="date"
                   className={`mt-1 w-full rounded-xl border pr-9 px-3 py-2 text-sm outline-none transition focus:ring-2 ${
-                    errors.date ? "border-red-300 focus:ring-red-200" : "border-slate-200 focus:ring-sky-300"
+                    errors.date
+                      ? "border-red-300 focus:ring-red-200"
+                      : "border-slate-200 focus:ring-sky-300"
                   }`}
                   value={form.date}
                   onChange={(e) => setForm({ ...form, date: e.target.value })}
-                  aria-invalid={!!errors.date}
-                  aria-describedby={errors.date ? "date-error" : undefined}
                 />
                 <Calendar className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
               {errors.date && (
-                <p id="date-error" className="mt-1 text-xs text-red-600">{errors.date}</p>
+                <p className="mt-1 text-xs text-red-600">{errors.date}</p>
               )}
             </div>
 
-            {/* Time range */}
+            {/* Time Range */}
             <div>
               <label className="block text-sm font-medium text-slate-700">
                 Time
@@ -357,10 +360,14 @@ const Events: React.FC = () => {
                   <input
                     type="time"
                     className={`w-full rounded-xl border pr-9 px-3 py-2 text-sm outline-none transition focus:ring-2 ${
-                      errors.timeFrom ? "border-red-300 focus:ring-red-200" : "border-slate-200 focus:ring-sky-300"
+                      errors.timeFrom
+                        ? "border-red-300 focus:ring-red-200"
+                        : "border-slate-200 focus:ring-sky-300"
                     }`}
                     value={form.timeFrom}
-                    onChange={(e) => setForm({ ...form, timeFrom: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, timeFrom: e.target.value })
+                    }
                   />
                   <Clock className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
@@ -368,10 +375,14 @@ const Events: React.FC = () => {
                   <input
                     type="time"
                     className={`w-full rounded-xl border pr-9 px-3 py-2 text-sm outline-none transition focus:ring-2 ${
-                      errors.timeTo ? "border-red-300 focus:ring-red-200" : "border-slate-200 focus:ring-sky-300"
+                      errors.timeTo
+                        ? "border-red-300 focus:ring-red-200"
+                        : "border-slate-200 focus:ring-sky-300"
                     }`}
                     value={form.timeTo}
-                    onChange={(e) => setForm({ ...form, timeTo: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, timeTo: e.target.value })
+                    }
                   />
                   <Clock className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
@@ -397,17 +408,55 @@ const Events: React.FC = () => {
               />
             </div>
 
-            {/* Submit */}
-            <div className="pt-1">
-              <button
-                type="submit"
-                disabled={submitting}
-                className="w-full md:w-auto inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-sky-600 text-white text-sm font-medium shadow hover:brightness-110 active:brightness-95 transition disabled:opacity-60"
+            {/* ✅ Category dropdown */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700">
+                Category
+              </label>
+              <select
+                value={form.category}
+                onChange={(e) => setForm({ ...form, category: e.target.value })}
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-sky-300 bg-white"
               >
-                <PenSquare className="w-4 h-4" />
-                {submitting ? "Posting…" : "Post Event"}
-              </button>
+                <option value="hackathon">Hackathon</option>
+                <option value="workshop">Workshop</option>
+                <option value="seminar">Seminar</option>
+                <option value="training">Training</option>
+                <option value="other">Other</option>
+              </select>
+
+              {form.category === "other" && (
+                <input
+                  type="text"
+                  placeholder="Specify other category..."
+                  value={customCategory}
+                  onChange={(e) => setCustomCategory(e.target.value)}
+                  className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-300"
+                />
+              )}
             </div>
+          </div>
+
+          {/* SUBMIT + message row */}
+          <div className="md:col-span-2 flex flex-col items-start mt-2 space-y-2 pt-1">
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full md:w-auto inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-sky-600 text-white text-sm font-medium shadow hover:brightness-110 active:brightness-95 transition disabled:opacity-60"
+            >
+              <PenSquare className="w-4 h-4" />
+              {submitting ? "Posting…" : "Post Event"}
+            </button>
+
+            {message && (
+              <p
+                className={`text-sm ${
+                  message.type === "success" ? "text-green-600" : "text-red-500"
+                }`}
+              >
+                {message.text}
+              </p>
+            )}
           </div>
         </form>
       </div>
@@ -416,7 +465,9 @@ const Events: React.FC = () => {
       <div className="bg-white shadow rounded-2xl p-4 sm:p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-slate-800">Recent Events</h3>
+            <h3 className="text-lg font-semibold text-slate-800">
+              Recent Events
+            </h3>
             <p className="text-sm text-slate-500">Most recent first</p>
           </div>
           <button className="text-sky-600 text-sm inline-flex items-center gap-1 hover:gap-2 transition-all">
@@ -506,17 +557,23 @@ const Events: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="rounded-xl border border-slate-200 p-3">
                     <p className="text-xs uppercase text-slate-400">Title</p>
-                    <p className="font-medium text-slate-800">{activeEvent.title}</p>
+                    <p className="font-medium text-slate-800">
+                      {activeEvent.title}
+                    </p>
                   </div>
                   <div className="rounded-xl border border-slate-200 p-3">
-                    <p className="text-xs uppercase text-slate-400">Objective</p>
+                    <p className="text-xs uppercase text-slate-400">
+                      Objective
+                    </p>
                     <p className="font-medium text-slate-800">
                       {activeEvent.objective}
                     </p>
                   </div>
                   <div className="rounded-xl border border-slate-200 p-3">
                     <p className="text-xs uppercase text-slate-400">Date</p>
-                    <p className="font-medium text-slate-800">{activeEvent.date}</p>
+                    <p className="font-medium text-slate-800">
+                      {activeEvent.date}
+                    </p>
                   </div>
                   <div className="rounded-xl border border-slate-200 p-3">
                     <p className="text-xs uppercase text-slate-400">Time</p>
@@ -531,12 +588,16 @@ const Events: React.FC = () => {
                     </p>
                   </div>
                   <div className="rounded-xl border border-slate-200 p-3 sm:col-span-2">
-                    <p className="text-xs uppercase text-slate-400">Description</p>
+                    <p className="text-xs uppercase text-slate-400">
+                      Description
+                    </p>
                     <p className="text-slate-700">{activeEvent.description}</p>
                   </div>
                   {activeEvent.details && (
                     <div className="rounded-xl border border-slate-200 p-3 sm:col-span-2">
-                      <p className="text-xs uppercase text-slate-400">Details</p>
+                      <p className="text-xs uppercase text-slate-400">
+                        Details
+                      </p>
                       <p className="text-slate-700">{activeEvent.details}</p>
                     </div>
                   )}
@@ -549,95 +610,109 @@ const Events: React.FC = () => {
                 <input
                   className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-300"
                   value={editDraft.title}
-                  onChange={(e) => setEditDraft({ ...editDraft, title: e.target.value })}
+                  onChange={(e) =>
+                    setEditDraft({ ...editDraft, title: e.target.value })
+                  }
                   placeholder="Title"
                 />
                 <input
                   className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-300"
                   value={editDraft.objective}
-                  onChange={(e) => setEditDraft({ ...editDraft, objective: e.target.value })}
+                  onChange={(e) =>
+                    setEditDraft({ ...editDraft, objective: e.target.value })
+                  }
                   placeholder="Objective"
                 />
                 <input
                   type="date"
                   className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-300"
                   value={editDraft.date}
-                  onChange={(e) => setEditDraft({ ...editDraft, date: e.target.value })}
+                  onChange={(e) =>
+                    setEditDraft({ ...editDraft, date: e.target.value })
+                  }
                 />
                 <div className="grid grid-cols-2 gap-3">
                   <input
                     type="time"
                     className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-300"
                     value={editDraft.timeFrom}
-                    onChange={(e) => setEditDraft({ ...editDraft, timeFrom: e.target.value })}
+                    onChange={(e) =>
+                      setEditDraft({ ...editDraft, timeFrom: e.target.value })
+                    }
                   />
                   <input
                     type="time"
                     className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-300"
                     value={editDraft.timeTo}
-                    onChange={(e) => setEditDraft({ ...editDraft, timeTo: e.target.value })}
+                    onChange={(e) =>
+                      setEditDraft({ ...editDraft, timeTo: e.target.value })
+                    }
                   />
                 </div>
                 <input
                   className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-300"
                   value={editDraft.location}
-                  onChange={(e) => setEditDraft({ ...editDraft, location: e.target.value })}
+                  onChange={(e) =>
+                    setEditDraft({ ...editDraft, location: e.target.value })
+                  }
                   placeholder="Location"
                 />
                 <input
                   className="rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-300"
                   value={editDraft.description}
-                  onChange={(e) => setEditDraft({ ...editDraft, description: e.target.value })}
+                  onChange={(e) =>
+                    setEditDraft({ ...editDraft, description: e.target.value })
+                  }
                   placeholder="Short description"
                 />
                 <textarea
                   rows={3}
                   className="sm:col-span-2 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-300"
                   value={editDraft.details ?? ""}
-                  onChange={(e) => setEditDraft({ ...editDraft, details: e.target.value })}
+                  onChange={(e) =>
+                    setEditDraft({ ...editDraft, details: e.target.value })
+                  }
                   placeholder="Other details"
                 />
               </div>
             )}
 
-            {/* Actions */}
-            <div className="mt-6 flex flex-col sm:flex-row gap-2 sm:justify-end">
+            {/* Modal Footer */}
+            <div className="mt-6 flex justify-end gap-2 border-t border-slate-200 pt-4">
               {!editing ? (
                 <>
                   <button
-                    onClick={() => startEdit()}
-                    className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl border border-slate-200 text-slate-700 text-sm hover:bg-slate-50"
+                    onClick={() => {
+                      setEditing(true);
+                      setEditDraft({ ...activeEvent }); // initialize the edit draft
+                    }}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-sky-500 text-white text-sm font-medium hover:bg-sky-600 transition"
                   >
-                    <Edit className="w-4 h-4" />
-                    Edit
+                    <Edit className="w-4 h-4" /> Edit
                   </button>
                   <button
-                    onClick={() => deleteEvent(activeEvent.id)}
-                    className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl border border-red-200 text-red-600 text-sm hover:bg-red-50"
+                    onClick={() => handleDelete(activeEvent.id)}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500 text-white text-sm font-medium hover:bg-red-600 transition"
                   >
-                    <Trash2 className="w-4 h-4" />
-                    Delete
-                  </button>
-                  <button
-                    onClick={closeModal}
-                    className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-800 text-white text-sm hover:brightness-110"
-                  >
-                    Close
+                    <Trash2 className="w-4 h-4" /> Delete
                   </button>
                 </>
               ) : (
                 <>
                   <button
-                    onClick={() => setEditing(false)}
-                    className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl border border-slate-200 text-slate-700 text-sm hover:bg-slate-50"
+                    onClick={saveEdit}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-green-500 text-white text-sm font-medium hover:bg-green-600 transition"
                   >
-                    Cancel
+                    <PenSquare className="w-4 h-4" /> Save
                   </button>
                   <button
-                    onClick={saveEdit}
-                    className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-sky-600 text-white text-sm hover:brightness-110"
+                    onClick={() => {
+                      setEditing(false);
+                      setEditDraft(null);
+                    }}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-sm font-medium hover:bg-slate-200 transition"
                   >
-                    Save changes
+                    Cancel
                   </button>
                 </>
               )}

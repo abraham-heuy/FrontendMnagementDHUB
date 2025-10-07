@@ -24,6 +24,7 @@ import StatusProgess from "./components/students/Progress/StatusProgess";
 import AdminPage from "./pages/Admin";
 import StudentPage from "./pages/Students";
 import Main from "./components/students/Main/Main";
+import Logout from "./components/Admin/logout";
 // Correct the import path and filename case if needed
 
 const App = () => {
@@ -49,6 +50,7 @@ const App = () => {
             <Route path="analytics" element={<Analytics />} />
             <Route path="reports" element={<Reports />} />
             <Route path="settings" element={<AccountSettings />} />
+            <Route path="logout" element={<Logout />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Route>

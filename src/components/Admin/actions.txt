@@ -1,0 +1,356 @@
+import React, { useEffect, useState } from "react";
+
+/**
+ * Admin Actions — Dummy-data preview
+ * Focus: actionable admin panel (assign activities, mark complete, advance stages, log progress)
+ * - Uses mock data only (no network)
+ * - Mobile-first layout, clear action buttons, concise reports
+ */
+
+export enum Stage {
+  PRE_INCUBATION = "pre-incubation",
+  INCUBATION = "incubation",
+  STARTUP = "startup",
+  ALUMNI = "alumni",
+}
+
+type Student = {
+  id: string;
+  name: string;
+  email: string;
+  stage: Stage;
+  progress: number; // 0-100
+};
+
+type Activity = {
+  id: string;
+  title: string;
+  description?: string;
+  stage: Stage;
+  required?: boolean;
+};
+
+type StudentActivity = {
+  id: string;
+  studentId: string;
+  activityId: string;
+  status: "NOT_STARTED" | "COMPLETED";
+  score?: number | null;
+};
+
+type ProgressLog = {
+  id: string;
+  studentId: string;
+  old_stage?: Stage;
+  new_stage?: Stage;
+  milestone?: string;
+  notes?: string;
+  createdAt: string;
+};
+
+const uid = (prefix = "") => prefix + Math.random().toString(36).slice(2, 9);
+
+export default function AdminActions(): JSX.Element {
+  // dummy data
+  const [students, setStudents] = useState<Student[]>([]);
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [studentActivities, setStudentActivities] = useState<StudentActivity[]>([]);
+  const [logs, setLogs] = useState<ProgressLog[]>([]);
+
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [selectedStage, setSelectedStage] = useState<Stage | "">("");
+  const [selectedActivityId, setSelectedActivityId] = useState<string>("");
+
+  useEffect(() => {
+    // populate mock data
+    const demoStudents: Student[] = [
+      { id: "s1", name: "Alice Wanjiku", email: "alice@dhub.com", stage: Stage.PRE_INCUBATION, progress: 40 },
+      { id: "s2", name: "Brian Otieno", email: "brian@dhub.com", stage: Stage.INCUBATION, progress: 70 },
+      { id: "s3", name: "Cynthia Mwangi", email: "cynthia@dhub.com", stage: Stage.STARTUP, progress: 90 },
+    ];
+
+    const demoActivities: Activity[] = [
+      { id: "a1", title: "Ideation Bootcamp", description: "Intro to startup thinking.", stage: Stage.PRE_INCUBATION, required: true },
+      { id: "a2", title: "MVP Building", description: "Build a minimal viable product.", stage: Stage.INCUBATION, required: true },
+      { id: "a3", title: "Investor Pitch", description: "Pitch deck & presentation.", stage: Stage.STARTUP, required: true },
+    ];
+
+    const demoStudentActivities: StudentActivity[] = [
+      { id: "sa1", studentId: "s1", activityId: "a1", status: "COMPLETED", score: 85 },
+      { id: "sa2", studentId: "s2", activityId: "a2", status: "NOT_STARTED", score: null },
+    ];
+
+    const demoLogs: ProgressLog[] = [
+      { id: "l1", studentId: "s2", old_stage: Stage.PRE_INCUBATION, new_stage: Stage.INCUBATION, milestone: "MVP ready", notes: "Good progress", createdAt: new Date().toISOString() },
+    ];
+
+    setStudents(demoStudents);
+    setActivities(demoActivities);
+    setStudentActivities(demoStudentActivities);
+    setLogs(demoLogs);
+  }, []);
+
+  // helpers
+  const getAssignedActivities = (studentId: string) =>
+    studentActivities
+      .filter((sa) => sa.studentId === studentId)
+      .map((sa) => ({ ...sa, activity: activities.find((a) => a.id === sa.activityId) }));
+
+  const calculateProgress = (studentId: string) => {
+    const assigned = studentActivities.filter((sa) => sa.studentId === studentId);
+    if (assigned.length === 0) return 0;
+    const completed = assigned.filter((a) => a.status === "COMPLETED").length;
+    return Math.round((completed / assigned.length) * 100);
+  };
+
+  // Actions
+  const advanceStudentStage = (student: Student, newStage: Stage) => {
+    const old = student.stage;
+    // update student stage
+    setStudents((prev) => prev.map((s) => (s.id === student.id ? { ...s, stage: newStage } : s)));
+    // add a progress log
+    const log: ProgressLog = {
+      id: uid("log_"),
+      studentId: student.id,
+      old_stage: old,
+      new_stage: newStage,
+      milestone: `Advanced to ${newStage}`,
+      notes: "Stage advanced by admin",
+      createdAt: new Date().toISOString(),
+    };
+    setLogs((l) => [log, ...l]);
+  };
+
+  const assignActivityToStudent = (studentId: string, activityId: string) => {
+    if (!activityId) return alert("Select an activity to assign");
+    const exists = studentActivities.some((sa) => sa.studentId === studentId && sa.activityId === activityId);
+    if (exists) return alert("Activity already assigned to student");
+    const sa: StudentActivity = { id: uid("sa_"), studentId, activityId, status: "NOT_STARTED", score: null };
+    setStudentActivities((prev) => [sa, ...prev]);
+    // update progress (0 -> recalculated)
+    setStudents((prev) => prev.map((s) => (s.id === studentId ? { ...s, progress: calculateProgress(studentId) } : s)));
+  };
+
+  const markActivityComplete = (studentId: string, activityId: string) => {
+    setStudentActivities((prev) =>
+      prev.map((sa) => (sa.studentId === studentId && sa.activityId === activityId ? { ...sa, status: "COMPLETED", score: 100 } : sa))
+    );
+    // recalc progress
+    setTimeout(() => {
+      setStudents((prev) => prev.map((s) => (s.id === studentId ? { ...s, progress: calculateProgress(studentId) } : s)));
+    }, 50);
+  };
+
+  const createActivity = (title: string, description: string, stage: Stage, required = false) => {
+    const a: Activity = { id: uid("a_"), title, description, stage, required };
+    setActivities((prev) => [a, ...prev]);
+  };
+
+  const deleteActivity = (activityId: string) => {
+    if (!confirm("Delete activity? This will remove assignments.")) return;
+    setActivities((prev) => prev.filter((a) => a.id !== activityId));
+    setStudentActivities((prev) => prev.filter((sa) => sa.activityId !== activityId));
+  };
+
+  const createProgressLog = (studentId: string, milestone?: string, notes?: string, newStage?: Stage) => {
+    const student = students.find((s) => s.id === studentId);
+    if (!student) return;
+    const log: ProgressLog = {
+      id: uid("log_"),
+      studentId,
+      old_stage: student.stage,
+      new_stage: newStage,
+      milestone,
+      notes,
+      createdAt: new Date().toISOString(),
+    };
+    setLogs((prev) => [log, ...prev]);
+    if (newStage) advanceStudentStage(student, newStage);
+  };
+
+  // small forms state
+  const [newActivityTitle, setNewActivityTitle] = useState("");
+  const [newActivityDesc, setNewActivityDesc] = useState("");
+  const [newActivityStage, setNewActivityStage] = useState<Stage>(Stage.PRE_INCUBATION);
+  const [logMilestone, setLogMilestone] = useState("");
+  const [logNotes, setLogNotes] = useState("");
+
+  return (
+    <div className="p-4 md:p-6 bg-gray-50 min-h-screen">
+      <h1 className="text-2xl md:text-3xl font-bold text-sky-600 mb-4 text-center">Admin Actions — Tasks & Tools</h1>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        {/* Students (select) */}
+        <div className="bg-white rounded-2xl p-4 shadow-sm border">
+          <h3 className="font-semibold text-gray-800 mb-3">Students (click to select)</h3>
+          <ul className="space-y-2 max-h-[420px] overflow-y-auto">
+            {students.map((s) => (
+              <li key={s.id} onClick={() => setSelectedStudent(s)} className={`p-3 rounded-md cursor-pointer border hover:bg-sky-50 ${selectedStudent?.id === s.id ? "bg-sky-100" : "bg-white"}`}>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="font-medium text-gray-700">{s.name}</p>
+                    <p className="text-xs text-gray-500">{s.email}</p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-xs text-gray-500 block">{s.stage}</span>
+                    <span className="text-sm font-semibold text-sky-600">{s.progress}%</span>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* ACTIONS PANEL */}
+        <div className="bg-white rounded-2xl p-4 shadow-sm border">
+          <h3 className="font-semibold text-gray-800 mb-3">Actions</h3>
+
+          {/* Stage action */}
+          <div className="mb-4 p-3 border rounded-lg">
+            <h4 className="font-medium text-gray-700 mb-2">Advance / Change Stage</h4>
+            <p className="text-xs text-gray-500 mb-2">Choose a stage to move the selected student to.</p>
+            <div className="flex gap-2">
+              <select value={selectedStage} onChange={(e) => setSelectedStage(e.target.value as Stage)} className="flex-1 p-2 border rounded-md">
+                <option value="">-- pick stage --</option>
+                {Object.values(Stage).map((s) => (
+                  <option key={s} value={s}>{s.replace("-"," ").toUpperCase()}</option>
+                ))}
+              </select>
+              <button onClick={() => { if (!selectedStudent) return alert("Select a student"); if (!selectedStage) return alert("Pick a stage"); advanceStudentStage(selectedStudent, selectedStage as Stage); }} className="px-3 py-2 rounded-md bg-sky-500 text-white animate-pulse">Advance</button>
+            </div>
+          </div>
+
+          {/* Assign activity */}
+          <div className="mb-4 p-3 border rounded-lg">
+            <h4 className="font-medium text-gray-700 mb-2">Assign Activity</h4>
+            <p className="text-xs text-gray-500 mb-2">Assign an activity from the list to the selected student.</p>
+            <div className="flex gap-2">
+              <select value={selectedActivityId} onChange={(e) => setSelectedActivityId(e.target.value)} className="flex-1 p-2 border rounded-md">
+                <option value="">-- pick activity --</option>
+                {activities.map((a) => (
+                  <option key={a.id} value={a.id}>{a.title} — {a.stage}</option>
+                ))}
+              </select>
+              <button onClick={() => { if (!selectedStudent) return alert("Select a student"); assignActivityToStudent(selectedStudent.id, selectedActivityId); setSelectedActivityId(""); }} className="px-3 py-2 rounded-md bg-sky-500 text-white animate-pulse">Assign</button>
+            </div>
+          </div>
+
+          {/* Mark complete & Assigned list */}
+          <div className="mb-4 p-3 border rounded-lg">
+            <h4 className="font-medium text-gray-700 mb-2">Assigned Activities</h4>
+            {selectedStudent ? (
+              <div>
+                <ul className="space-y-2 max-h-[160px] overflow-y-auto mb-2">
+                  {getAssignedActivities(selectedStudent.id).map((sa: any) => (
+                    <li key={sa.id} className="p-2 border rounded-md flex justify-between items-center">
+                      <div>
+                        <p className="text-sm font-medium">{sa.activity?.title || sa.activityId}</p>
+                        <p className="text-xs text-gray-500">Status: {sa.status}</p>
+                      </div>
+                      <div className="flex flex-col items-end gap-2">
+                        {sa.status === "NOT_STARTED" ? (
+                          <button onClick={() => markActivityComplete(selectedStudent.id, sa.activityId)} className="text-xs px-2 py-1 rounded bg-green-500 text-white">Mark Complete</button>
+                        ) : (
+                          <span className="text-xs text-gray-500">Done</span>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                  {getAssignedActivities(selectedStudent.id).length === 0 && <p className="text-xs text-gray-500">No activities assigned.</p>}
+                </ul>
+
+                <button onClick={() => { const id = prompt("Enter activity id to remove from student"); if (id) setStudentActivities((prev) => prev.filter((p) => !(p.studentId === selectedStudent.id && p.activityId === id))); }} className="text-xs text-red-600">Remove assignment</button>
+              </div>
+            ) : (
+              <p className="text-xs text-gray-500">Select a student to manage assignments.</p>
+            )}
+          </div>
+
+          {/* Create / Delete activity */}
+          <div className="p-3 border rounded-lg">
+            <h4 className="font-medium text-gray-700 mb-2">Create Activity</h4>
+            <input value={newActivityTitle} onChange={(e) => setNewActivityTitle(e.target.value)} placeholder="Title" className="w-full p-2 mb-2 border rounded-md" />
+            <textarea value={newActivityDesc} onChange={(e) => setNewActivityDesc(e.target.value)} placeholder="Description" className="w-full p-2 mb-2 border rounded-md" />
+            <div className="flex gap-2 mb-2">
+              <select value={newActivityStage} onChange={(e) => setNewActivityStage(e.target.value as Stage)} className="flex-1 p-2 border rounded-md">
+                {Object.values(Stage).map((s) => <option key={s} value={s}>{s.replace("-"," ").toUpperCase()}</option>)}
+              </select>
+              <button onClick={() => { if (!newActivityTitle) return alert("Add title"); createActivity(newActivityTitle, newActivityDesc, newActivityStage); setNewActivityTitle(""); setNewActivityDesc(""); }} className="px-3 py-2 rounded-md bg-sky-500 text-white animate-pulse">Create</button>
+            </div>
+            <div className="text-xs text-gray-500">To delete an activity, open it from the list and click delete.</div>
+          </div>
+        </div>
+
+        {/* Right: report & quick controls */}
+        <div className="bg-white rounded-2xl p-4 shadow-sm border">
+          <h3 className="font-semibold text-gray-800 mb-3">Report & Quick Actions</h3>
+
+          {selectedStudent ? (
+            <div className="space-y-3">
+              <div>
+                <p className="font-medium">{selectedStudent.name}</p>
+                <p className="text-xs text-gray-500">{selectedStudent.email}</p>
+                <p className="text-xs text-gray-600">Stage: {selectedStudent.stage}</p>
+                <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                  <div className="bg-sky-500 h-2 rounded-full" style={{ width: `${selectedStudent.progress}%` }} />
+                </div>
+              </div>
+
+              <div className="p-2 border rounded-md">
+                <p className="text-sm font-semibold mb-2">Quick Log</p>
+                <input value={logMilestone} onChange={(e) => setLogMilestone(e.target.value)} placeholder="Milestone" className="w-full p-2 mb-2 border rounded-md" />
+                <textarea value={logNotes} onChange={(e) => setLogNotes(e.target.value)} placeholder="Notes" className="w-full p-2 mb-2 border rounded-md" />
+                <div className="flex gap-2">
+                  <select onChange={(e) => {/* optional quick stage change in log */}} className="flex-1 p-2 border rounded-md">
+                    <option value="">No stage change</option>
+                    {Object.values(Stage).map((s) => <option key={s} value={s}>{s.replace("-"," ").toUpperCase()}</option>)}
+                  </select>
+                  <button onClick={() => { if (!selectedStudent) return; createProgressLog(selectedStudent.id, logMilestone, logNotes); setLogMilestone(""); setLogNotes(""); }} className="px-3 py-2 rounded-md bg-sky-500 text-white animate-pulse">Log</button>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm font-semibold mb-2">Recent Logs</p>
+                <ul className="space-y-2 max-h-[160px] overflow-y-auto text-xs">
+                  {logs.filter((l) => l.studentId === selectedStudent.id).map((l) => (
+                    <li key={l.id} className="p-2 border rounded-md">
+                      <div className="flex justify-between">
+                        <div>
+                          <p className="font-medium">{l.milestone || "-"}</p>
+                          <p className="text-gray-500">{l.notes}</p>
+                        </div>
+                        <div className="text-right text-xs text-gray-400">{new Date(l.createdAt).toLocaleString()}</div>
+                      </div>
+                    </li>
+                  ))}
+                  {logs.filter((l) => l.studentId === selectedStudent.id).length === 0 && <p className="text-xs text-gray-500">No logs yet.</p>}
+                </ul>
+              </div>
+            </div>
+          ) : (
+            <p className="text-xs text-gray-500">Select a student to perform actions and see quick reports.</p>
+          )}
+
+          {/* Activities list (compact with delete) */}
+          <div className="mt-4">
+            <p className="text-sm font-semibold mb-2">All Activities</p>
+            <ul className="space-y-2 max-h-[160px] overflow-y-auto text-sm">
+              {activities.map((a) => (
+                <li key={a.id} className="p-2 border rounded-md flex justify-between items-center">
+                  <div>
+                    <p className="font-medium">{a.title}</p>
+                    <p className="text-xs text-gray-500">{a.stage}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => { const assignTo = selectedStudent?.id; if (!assignTo) return alert("Select student to assign"); assignActivityToStudent(assignTo, a.id); }} className="text-xs px-2 py-1 rounded bg-sky-100 text-sky-700">Assign</button>
+                    <button onClick={() => deleteActivity(a.id)} className="text-xs px-2 py-1 rounded bg-red-100 text-red-600">Delete</button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

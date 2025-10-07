@@ -21,9 +21,14 @@ export interface Event {
 }
 
   
-  export interface EventFormData {
-    title:string;
-    description:string;
-    date:string;
-    location:string;
-  }
+export interface EventFormData {
+  title: string;
+  description: string;
+  location: string;
+  objective: string;
+  date: string;
+  timeFrom: string;
+  timeTo: string;
+  details: string;
+  category?: string; 
+ }

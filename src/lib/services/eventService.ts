@@ -24,6 +24,7 @@ export const createEvent = async (data: EventFormData): Promise<Event> => {
   const res = await fetch(`${API_URL}/events/create`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    credentials: "include",
     body: JSON.stringify(data),
   });
 
@@ -34,12 +35,13 @@ export const createEvent = async (data: EventFormData): Promise<Event> => {
 };
 
 export const updateEvent = async (
-  id: number,
+  id: string,
   data: EventFormData
 ): Promise<Event> => {
   const res = await fetch(`${API_URL}/events/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
+    credentials: "include",
     body: JSON.stringify(data),
   });
 
@@ -49,9 +51,10 @@ export const updateEvent = async (
   return res.json();
 };
 
-export const deleteEvent = async (id: number): Promise<void> => {
+export const deleteEvent = async (id: string): Promise<void> => {
   const res = await fetch(`${API_URL}/events/${id}`, {
     method: "DELETE",
+    credentials: "include",
   });
 
   if (!res.ok) {

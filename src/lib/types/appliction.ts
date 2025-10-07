@@ -1,27 +1,53 @@
+// src/types/applications.ts
+
+export interface TeamMember {
+  name: string;
+  email: string;
+}
+
+export interface EventSummary {
+  id: string;
+  title: string;
+  description: string;
+  location: string;
+  objective: string;
+  date: string;
+  timeFrom: string;
+  timeTo: string;
+  details: string;
+  category: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Application {
-    application_id: number;
-      regNo: string;
-      first_name: string;
-      last_name: string;
-      surname: string;
-      email: string;
-      phone: string;
-      teamMembers: string;
-      businessIdea: string;
-      problemStatement: string;
-      solution: string;
-      targetMarket: string;
-      revenueModel: string;
-      status: "pending" | "approved" | "rejected";
-      submissionDate: string;
-      isApproved?: boolean;
-      createdAt: string;
-      updatedAt: string;
-      user?: {
-        user_id: number;
-        name: string;
-        first_name: string;
-        last_name: string;
-        email: string;
-      }
-    }
+  id: string;
+  regNo?: string;
+  name?: string;
+  email?: string;
+  phone: string;
+  teamMembers: string | TeamMember[]; // backend sends string, we can parse to array
+  businessIdea: string;
+  problemStatement: string;
+  solution: string;
+  targetMarket: string;
+  revenueModel: string;
+  isPassed: boolean;
+  appliedAt: string;
+  event: EventSummary;
+}
+
+export interface ApplicationFormData {
+  regNo: string;
+  name: string;
+  email: string;
+  phone: string;
+  teamMembers?: TeamMember[] | string;
+  businessIdea: string;
+  problemStatement: string;
+  solution: string;
+  targetMarket: string;
+  revenueModel: string;
+}
+
+
