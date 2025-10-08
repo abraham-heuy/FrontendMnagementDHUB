@@ -42,7 +42,7 @@ export const notificationService = {
 
   /** 🧑‍💼 Get notifications for admin (received + sent) */
   getMyNotifications: async (): Promise<NotificationItem[]> => {
-    const res = await fetch(`${apiURL}/notifications/admin`, {
+    const res = await fetch(`${apiURL}/notifications`, {
       method: "GET",
       credentials: "include",
     });
@@ -156,3 +156,4 @@ export const {
   getAllGroups,
   sendNotification,
 } = notificationService;
+
