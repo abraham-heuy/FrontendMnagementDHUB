@@ -58,6 +58,13 @@ export const notificationService = {
     });
     if (!res.ok) throw new Error("Failed to mark notification as read");
   },
+  markAllAsRead: async (): Promise<void> => {
+    const res = await fetch(`${apiURL}/notifications/read-all`, {
+      method: "PATCH",
+      credentials: "include",
+    });
+    if (!res.ok) throw new Error("Failed to mark all notifications as read");
+  },
 
   /** 📨 Create a new notification (student → admin or user → user) */
   createNotification: async (

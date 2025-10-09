@@ -1,9 +1,8 @@
-import {useState, useEffect } from 'react';
-
-
+// Main.tsx - Enhanced version with better layout
+import { useState, useEffect } from 'react';
 import { getDashboardStats } from '../../../lib/services/dashboard';
 import type { DashboardData, DashboardStats } from '../../../lib/types/dashboardTypes';
-import { FiRefreshCw } from 'react-icons/fi';
+import { FiRefreshCw, FiTrendingUp } from 'react-icons/fi';
 import RecentNotifications from './RecentNotifications';
 import UpcomingEvents from './UpcomingEvents';
 import RecentActivities from './RecentActivities';
@@ -13,8 +12,7 @@ import StatsGrid from './StatsGrid';
 import DashboardHeader from './DashboardHeader';
 import ErrorDisplay from './ErrorDisplay';
 import LoadingSpinner from './LoadingSpinner';
-
-
+import { notificationService } from '../../../lib/services/notificationService';
 
 const Main = () => {
   const [loading, setLoading] = useState(true);
@@ -27,7 +25,7 @@ const Main = () => {
     profile: null,
     activities: []
   });
-  const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [retryCount, setRetryCount] = useState(0);
 
   const fetchDashboardData = async () => {
@@ -35,7 +33,7 @@ const Main = () => {
       setLoading(true);
       setErrors({});
 
-      const newErrors: {[key: string]: string} = {};
+      const newErrors: { [key: string]: string } = {};
       const newData: DashboardData = {
         userData: null,
         currentStage: null,
@@ -83,7 +81,7 @@ const Main = () => {
           .catch(error => {
             newErrors.profile = 'Failed to load profile';
             console.error('Error fetching profile:', error);
-          }) 
+          })
       ];
 
       await Promise.allSettled(dataPromises);
@@ -101,11 +99,10 @@ const Main = () => {
 
       // log final errors and data for debugging
       console.log('Dashboard fetch results:', { newData, newErrors });
-      
+
       // Update state with fetched data and errors
       setDashboardData(newData);
       setErrors(newErrors);
-
 
     } catch (error: any) {
       console.error('Unexpected error fetching dashboard data:', error);
@@ -144,66 +141,131 @@ const Main = () => {
     unreadNotifications: dashboardData.notifications.filter(n => !n.is_read).length || 0
   };
 
-  const hasCriticalError = errors.user || errors.general;
+  // Enhance the notification logic here to handle marking as read, clearing, etc.
+
+  const handleMarkAsRead = async (notificationId: string) => {
+    try {
+      await notificationService.markAsRead(notificationId)
+
+      // update local state
+      setDashboardData(prevData => ({
+        ...prevData,
+        notifications: prevData.notifications.map(n => n.id === notificationId ? { ...n, is_read: true } : n)
+      }))
+
+    } catch (error) {
+      console.error("Failed to mark notification as read", error);
+      // setError("Failed to mark notification as read");
+      setErrors(prev => ({ ...prev, notifications: 'Failed to mark notification as read' }));
+    }
+  }
+
+  // all as read
+  const handleMarkAllAsRead = async () => {
+    try {
+      await notificationService.markAllAsRead()
+      // update local state
+      setDashboardData(prevData => ({
+        ...prevData,
+        notifications: prevData.notifications.map(n => ({ ...n, is_read: true }))
+      }))
+
+    } catch (error) {
+      console.error("Failed to mark all notifications as read", error);
+      setErrors(prev => ({ ...prev, notifications: 'Failed to mark all notifications as read' }));
+    }
+  }
+
+  // handle clear 
+  const handleClearNotification = async (notificationId: string) => {
+    try {
+      setDashboardData(prevData => ({
+        ...prevData,
+        notifications: prevData.notifications.filter(n => n.id !== notificationId)
+      }))
+    } catch (error) {
+      console.error("Failed to clear notification", error);
+      setErrors(prev => ({ ...prev, notifications: 'Failed to clear notification' }));
+    }
+  }
+
+  // handle clear all
+  const handleClearAllNotifications = async () => {
+    try {
+      // Since we don't have a delete all endpoint, we'll just clear from UI
+      setDashboardData(prev => ({
+        ...prev,
+        notifications: []
+      }));
+    } catch (error) {
+      console.error('Failed to clear all notifications:', error);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30 p-4 md:p-6">
+    <div className="min-h-screen bg-green-50 p-4 md:p-6">
       {/* Error Display */}
       {Object.keys(errors).length > 0 && (
-        <ErrorDisplay 
-          errors={errors} 
+        <ErrorDisplay
+          errors={errors}
           onRetry={handleRetry}
         />
       )}
 
+
       {/* Header Section */}
-      <DashboardHeader 
+      <DashboardHeader
         userData={dashboardData.userData}
         currentStage={dashboardData.currentStage}
         profile={dashboardData.profile}
       />
 
-      {/* Stats Grid */}
-      <StatsGrid 
-        stats={stats}
-        errors={errors}
-      />
-
-      {/* Startup Project Section */}
-      <StartupProject profile={dashboardData.profile} />
-
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-        {/* Left Column - Progress & Activities */}
-        <div className="xl:col-span-2 space-y-8">
-          {/* Current Stage Progress */}
-          <CurrentStage 
-            currentStage={dashboardData.currentStage}
+      {/* Main Content Grid - Improved Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left Column - Progress & Project */}
+        <div className="xl:col-span-1 space-y-6">
+          {/* Stats Grid */}
+          <StatsGrid
             stats={stats}
             errors={errors}
-            onRetry={handleRetry}
           />
 
-          {/* Recent Activities */}
-          <RecentActivities 
-            activities={dashboardData.currentStage?.activities}
-            errors={errors}
-            onRetry={handleRetry}
-          />
+          {/* Current Stage & Activities Side by Side */}
+          <div className="grid grid-cols-1  gap-6">
+            {/* h3  */}
+            <h3 className='text-green-200 text-2xl font-semibold'>Notification and Activities</h3>
+            <RecentNotifications
+              notifications={dashboardData.notifications}
+              errors={errors}
+              onRetry={handleRetry}
+              onMarkAsRead={handleMarkAsRead}
+              onMarkAllAsRead={handleMarkAllAsRead}
+              onClear={handleClearNotification}
+              onClearAll={handleClearAllNotifications}
+            />
+            
+            <RecentActivities
+              activities={dashboardData.currentStage?.activities}
+              errors={errors}
+              onRetry={handleRetry}
+            />
+          </div>
+
+          {/* Startup Project */}
+          <StartupProject profile={dashboardData.profile} />
         </div>
 
         {/* Right Column - Events & Notifications */}
-        <div className="space-y-8">
-          {/* Upcoming Events */}
-          <UpcomingEvents 
+        <div className="space-y-6 md:">
+          <UpcomingEvents
             events={dashboardData.events}
             errors={errors}
             onRetry={handleRetry}
           />
 
-          {/* Recent Notifications */}
-          <RecentNotifications 
-            notifications={dashboardData.notifications}
+          <CurrentStage
+            currentStage={dashboardData.currentStage}
+            stats={stats}
             errors={errors}
             onRetry={handleRetry}
           />
@@ -215,7 +277,7 @@ const Main = () => {
         <div className="flex justify-center mt-8">
           <button
             onClick={handleRetry}
-            className="bg-blue-600 text-white px-8 py-3 rounded-xl font-medium hover:bg-blue-700 transition-colors flex items-center space-x-3"
+            className="bg-green-600 text-white px-8 py-3 rounded-xl font-medium hover:bg-green-700 transition-colors flex items-center space-x-3"
           >
             <FiRefreshCw size={20} />
             <span>Reload Dashboard</span>
@@ -227,4 +289,3 @@ const Main = () => {
 };
 
 export default Main;
-

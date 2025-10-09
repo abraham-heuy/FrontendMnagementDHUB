@@ -80,7 +80,7 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats, errors }) => {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
+    <div className="grid grid-cols-2 md:grid-cols-3   gap-6 mb-8">
       {statCards.map((stat, index) => {
         const IconComponent = stat.icon;
         const colorClasses = getColorClasses(stat.color);
@@ -92,17 +92,17 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats, errors }) => {
               }`}
           >
             <div className="flex items-center justify-between mb-4">
-              <div className={`w-12 h-12 rounded-lg flex items-center justify-center border ${colorClasses}`}>
-                <IconComponent className="text-xl" />
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center border ${colorClasses}`}>
+                <IconComponent className="text-lg" />
               </div>
               {stat.error && (
                 <FiAlertCircle className="text-red-500 text-lg" />
               )}
             </div>
 
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-              <p className={`text-2xl font-bold ${stat.error ? 'text-red-600' : 'text-gray-900'}`}>
+            <div className="space-y-1 flex  gap-2 flex-wrap">
+              <p className="text-xs font-medium text-gray-600">{stat.title}</p>
+              <p className={`text-sm font-bold ${stat.error ? 'text-red-600' : 'text-gray-900'}`}>
                 {stat.error ? '—' : stat.value}
               </p>
               <p className={`text-xs ${stat.error ? 'text-red-500' : 'text-gray-500'}`}>

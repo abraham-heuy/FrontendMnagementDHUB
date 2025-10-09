@@ -37,6 +37,7 @@ export interface Notification {
   title: string;
   message: string;
   is_read: boolean;
+  type?: string;
   created_at: string;
 }
 
@@ -65,6 +66,7 @@ export interface Profile {
   yearOfStudy: string;
   linkedIn: string;
   website: string;
+  profilePicture?: string;
 }
 
 export interface DashboardData {
