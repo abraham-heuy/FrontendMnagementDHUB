@@ -106,3 +106,63 @@ export const loginStudent = async (email: string, password: string) => {
     }
   }
 }
+
+
+ // login mentor:
+ export const loginMentor = async (email: string, password: string) => {
+  try {
+    const response = await fetch(`${API_URL}/auth/login`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    let errorMsg = "Something went wrong. Please try again later.";
+
+    if (!response.ok) {
+      //parse the backend error safely: Tip => {I have used general messaging to avoid user getting direct erroor msg from backend}
+      try {
+        const error = await response.json();
+        errorMsg = error.message || "Invalid email or password.";
+      } catch {
+        if (response.status === 401) {
+          errorMsg = "Invalid email or password.";
+        }
+      }
+
+      throw new Error(errorMsg);
+    }
+    return response.json();
+
+  } catch (error) {
+    // check for Network issue (server down, no internet, etc.)
+    if (error instanceof TypeError) {
+      throw new Error("Unable to connect. Please try again later.");
+    }
+  }
+}
+
+
+//general logout function: 
+
+
+export const logout = async () => {
+  //catch exceptions
+  try {
+    const response = await fetch(`${API_URL}/auth/logout`, {
+      method: "POST",
+      credentials: "include", //always include this dude, or you'll sweat
+    })
+    if (!response.ok) {
+      throw new Error("Logout failed. Please try again!")
+    }
+    return response.json()
+
+  } catch (err) {
+    if (err instanceof TypeError) {
+      throw new Error("Network error. Please try again later.");
+    }
+    throw err;
+  }
+}

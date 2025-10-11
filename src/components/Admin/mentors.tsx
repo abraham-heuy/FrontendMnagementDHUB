@@ -6,13 +6,13 @@ import {
   getAllAllocations,
 } from "../../lib/services/mentorService";
 import type { MentorProfile, MentorAllocation } from "../../lib/types/mentor";
-import type { StudentProfile } from "../../lib/types/profile";
 import { listAllStudentProfiles } from "../../lib/services/Profilesservice";
 
 interface Student {
   id: string;
   name: string;
   field: string;
+  allocationId?: string; // <- include allocation id for unassigning
 }
 
 interface Mentor {
@@ -33,65 +33,71 @@ const MentorManagement: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [assigning, setAssigning] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // ✅ Reusable function to fetch mentors, students, and allocations
   const loadMentorsAndStudents = async () => {
     try {
       setLoading(true);
+
       const mentorProfiles: MentorProfile[] = await getAllMentors();
-      const studentProfiles: StudentProfile[] = await listAllStudentProfiles();
+      const studentProfiles = await listAllStudentProfiles();
+      const allocations: MentorAllocation[] = await getAllAllocations();
 
       const normalizedStudents: Student[] = studentProfiles.map((s) => ({
-        id: s.id,
+        id: s.user.id,
         name: s.user?.fullName ?? "Unnamed Student",
         field: s.field ?? "N/A",
       }));
 
-      const allocations: MentorAllocation[] = await getAllAllocations();
-
       const mentorIdToStudents: Record<string, Student[]> = {};
       allocations.forEach((alloc) => {
-        const student = normalizedStudents.find((s) => s.id === alloc.studentId);
-        if (student) {
-          if (!mentorIdToStudents[alloc.mentorId]) mentorIdToStudents[alloc.mentorId] = [];
-          mentorIdToStudents[alloc.mentorId].push(student);
-        }
+        const mentorId = alloc.mentor.id;
+        if (!mentorIdToStudents[mentorId]) mentorIdToStudents[mentorId] = [];
+        mentorIdToStudents[mentorId].push({
+          id: alloc.student.id,
+          name: alloc.student.name,
+          field: alloc.student.field ?? "N/A",
+          allocationId: alloc.id,
+        });
       });
 
       const normalizedMentors: Mentor[] = mentorProfiles.map((mentor) => ({
-        id: mentor.id,
+        id: mentor.user?.id ?? mentor.id,
         name: mentor.user?.fullName ?? "Unnamed Mentor",
         specialization: mentor.specialization ?? "Not specified",
         contact: mentor.contact ?? "N/A",
         experience: mentor.experience ?? "No experience info",
         recentProject: mentor.recentProject ?? "None",
-        assignedStudents: mentorIdToStudents[mentor.id] ?? [],
+        assignedStudents:
+          mentorIdToStudents[mentor.user?.id ?? mentor.id] ?? [],
       }));
 
       setMentors(normalizedMentors);
       setStudents(normalizedStudents);
     } catch (err: any) {
-      console.error(err);
+      console.error("Error loading mentor management data:", err);
       setError(err.message || "Failed to load mentor management data");
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ Initial fetch
   useEffect(() => {
     loadMentorsAndStudents();
   }, []);
 
-  // ✅ Assign a student and refresh data
   const handleAssignStudent = async () => {
     if (!selectedMentor || !selectedStudentId) return;
     try {
       setAssigning(true);
       await assignStudentToMentor(selectedMentor.id, selectedStudentId);
-      await loadMentorsAndStudents(); // refresh to match backend
-      setSelectedMentor(null);
+      await loadMentorsAndStudents();
       setSelectedStudentId("");
+      setSelectedMentor(null);
+
+      // Show success message for 3 seconds
+      setSuccessMessage("Student successfully assigned!");
+      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -99,18 +105,20 @@ const MentorManagement: React.FC = () => {
     }
   };
 
-  // ✅ Unassign a student and refresh data
-  const handleUnassignStudent = async (studentId: string) => {
-    if (!selectedMentor) return;
+  const handleUnassignStudent = async (allocationId?: string) => {
+    if (!allocationId) return;
     try {
-      await unassignStudentFromMentor(studentId);
-      await loadMentorsAndStudents(); // refresh to match backend
+      await unassignStudentFromMentor(allocationId);
+      await loadMentorsAndStudents();
+
+      // Show success message for 3 seconds
+      setSuccessMessage("Student successfully unassigned!");
+      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
       setError(err.message);
     }
   };
 
-  // ✅ Filter students matching mentor specialization
   const matchedStudents = selectedMentor
     ? students.filter(
         (s) =>
@@ -139,8 +147,14 @@ const MentorManagement: React.FC = () => {
           Manage mentor assignments, profiles, and student allocations.
         </p>
         <div className="mt-4 flex flex-wrap gap-6 text-sm text-slate-600">
-          <p>Total Mentors: <span className="font-semibold">{mentors.length}</span></p>
-          <p>Total Students: <span className="font-semibold">{students.length}</span></p>
+          <p>
+            Total Mentors:{" "}
+            <span className="font-semibold">{mentors.length}</span>
+          </p>
+          <p>
+            Total Students:{" "}
+            <span className="font-semibold">{students.length}</span>
+          </p>
           <p>
             Assigned Students:{" "}
             <span className="font-semibold">
@@ -154,13 +168,20 @@ const MentorManagement: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Available Mentors */}
         <div className="bg-white shadow rounded-2xl p-4 lg:p-6">
-          <h3 className="text-lg font-semibold text-slate-800 mb-4">Available Mentors</h3>
+          <h3 className="text-lg font-semibold text-slate-800 mb-4">
+            Available Mentors
+          </h3>
           {mentors
             .filter((m) => m.assignedStudents.length === 0)
             .map((mentor) => (
-              <div key={mentor.id} className="border rounded-xl p-4 hover:shadow-md transition">
+              <div
+                key={mentor.id}
+                className="border rounded-xl p-4 hover:shadow-md transition"
+              >
                 <h4 className="font-medium text-slate-700">{mentor.name}</h4>
-                <p className="text-xs text-slate-500">{mentor.specialization}</p>
+                <p className="text-xs text-slate-500">
+                  {mentor.specialization}
+                </p>
                 <div className="flex justify-between items-center mt-3">
                   <span className="text-xs text-slate-400">
                     Students: {mentor.assignedStudents.length}
@@ -178,13 +199,20 @@ const MentorManagement: React.FC = () => {
 
         {/* Assigned Mentors */}
         <div className="bg-white shadow rounded-2xl p-4 lg:p-6">
-          <h3 className="text-lg font-semibold text-slate-800 mb-4">Assigned Mentors</h3>
+          <h3 className="text-lg font-semibold text-slate-800 mb-4">
+            Assigned Mentors
+          </h3>
           {mentors
             .filter((m) => m.assignedStudents.length > 0)
             .map((mentor) => (
-              <div key={mentor.id} className="border rounded-xl p-4 hover:shadow-md transition">
+              <div
+                key={mentor.id}
+                className="border rounded-xl p-4 hover:shadow-md transition"
+              >
                 <h4 className="font-medium text-slate-700">{mentor.name}</h4>
-                <p className="text-xs text-slate-500">{mentor.specialization}</p>
+                <p className="text-xs text-slate-500">
+                  {mentor.specialization}
+                </p>
                 <div className="flex justify-between items-center mt-3">
                   <span className="text-xs text-slate-400">
                     Students: {mentor.assignedStudents.length}
@@ -201,26 +229,36 @@ const MentorManagement: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal */}
+      {/* Mentor Modal */}
       {selectedMentor && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40 backdrop-blur-sm">
           <div className="bg-white/90 rounded-2xl shadow-lg p-6 w-full max-w-lg animate-fadeIn">
-            <h3 className="text-lg font-semibold text-slate-800 mb-2">{selectedMentor.name}</h3>
-            <p className="text-sm text-slate-500 mb-2">{selectedMentor.specialization} | {selectedMentor.contact}</p>
-            <p className="text-sm text-slate-600 mb-4">{selectedMentor.experience}</p>
+            <h3 className="text-lg font-semibold text-slate-800 mb-2">
+              {selectedMentor.name}
+            </h3>
+            <p className="text-sm text-slate-500 mb-2">
+              {selectedMentor.specialization} | {selectedMentor.contact}
+            </p>
+            <p className="text-sm text-slate-600 mb-4">
+              {selectedMentor.experience}
+            </p>
 
             {/* Assigned students */}
             <div className="mb-4">
-              <h4 className="font-medium text-slate-700 mb-2 text-sm">Assigned Students</h4>
+              <h4 className="font-medium text-slate-700 mb-2 text-sm">
+                Assigned Students
+              </h4>
               {selectedMentor.assignedStudents.length === 0 ? (
                 <p className="text-xs text-slate-500">No students assigned</p>
               ) : (
                 <ul className="list-disc list-inside text-sm text-slate-600">
                   {selectedMentor.assignedStudents.map((s) => (
                     <li key={s.id} className="flex justify-between">
-                      <span>{s.name} ({s.field})</span>
+                      <span>
+                        {s.name} ({s.field})
+                      </span>
                       <button
-                        onClick={() => handleUnassignStudent(s.id)}
+                        onClick={() => handleUnassignStudent(s.allocationId)}
                         className="text-red-500 text-xs hover:underline"
                       >
                         Unassign
@@ -233,7 +271,9 @@ const MentorManagement: React.FC = () => {
 
             {/* Assign new student */}
             <div className="mb-4">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Assign New Student</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Assign New Student
+              </label>
               <select
                 value={selectedStudentId}
                 onChange={(e) => setSelectedStudentId(e.target.value)}
@@ -241,7 +281,9 @@ const MentorManagement: React.FC = () => {
               >
                 <option value="">Select a student</option>
                 {matchedStudents.map((s) => (
-                  <option key={s.id} value={s.id}>{s.name} ({s.field})</option>
+                  <option key={s.id} value={s.id}>
+                    {s.name} ({s.field})
+                  </option>
                 ))}
               </select>
             </div>
@@ -262,6 +304,15 @@ const MentorManagement: React.FC = () => {
                 {assigning ? "Assigning..." : "Assign Student"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Notification */}
+      {successMessage && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-lg p-4 px-6 animate-fadeIn text-green-600 font-medium">
+            {successMessage}
           </div>
         </div>
       )}

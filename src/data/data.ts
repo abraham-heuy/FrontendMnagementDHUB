@@ -22,6 +22,7 @@ export const NavbarMenu = [
       { id: 31, title: "Hackathons", link: "/events/hackathon", filter: "hackathon" },
       { id: 32, title: "Workshops", link: "/events/workshop", filter: "workshop" },
       { id: 33, title: "Seminars", link: "/events/seminar", filter: "seminar" },
+      { id: 34, title: "Training", link: "/events/training", filter: "training" },
     ],
   },
   // {

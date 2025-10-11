@@ -38,7 +38,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requiredRole }) => {
   }, []);
 
   if (loading) return <p>Checking authentication...</p>;
-  if (redirect) return <Navigate to="/admin/login" replace />;
+  if (redirect) return <Navigate to="/" replace />;
   if (notLoggedIn) return <p>Not logged in...</p>;
   if (requiredRole && user.role !== requiredRole) return <AccessDenied />;
 

@@ -22,12 +22,24 @@ export interface MentorProfile {
     id: string;
     name: string;
     field: string | null;
+    institution?: string | null;
+    course?: string | null;
+    yearOfStudy?: string | null;
+    email?: string | null;
   }
+  
   
   export interface MentorAllocation {
     id: string;
-    mentorId: string;
-    studentId: string;
-    createdAt?: string;
+    mentor: {
+      id: string;
+      name: string;
+      specialization?: string;
+    };
+    student: {
+      id: string;
+      name: string;
+      field?: string;
+    };
   }
   

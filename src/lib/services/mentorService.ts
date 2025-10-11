@@ -72,14 +72,11 @@ export const getMyAllocatedMentor = async (): Promise<MentorProfile> => {
 };
 
 /** ✅ Admin: Assign a student to a mentor */
-export const assignStudentToMentor = async (
-  mentorId: string,
-  studentId: string
-): Promise<MentorAllocation> => {
-  const res = await fetch(`${API_URL}/mentor/assign`, {
+export const assignStudentToMentor = async (mentorId: string,studentId: string): Promise<MentorAllocation> => {
+  const res = await fetch(`${API_URL}/mentor/allocate`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     credentials: "include",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ mentorId, studentId }),
   });
   if (!res.ok) throw new Error("Failed to assign student to mentor");

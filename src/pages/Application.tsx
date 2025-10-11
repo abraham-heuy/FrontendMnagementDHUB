@@ -1,13 +1,17 @@
-import { useState } from "react"
+import { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import InputField from "../components/InputField";
 import ReviewField from "../components/ReviewFiel";
 import { businessSections } from "../data/data";
 import Navigation from "../components/Navigation";
 import Modal from "../components/Modal";
-import modalImage from '../assets/images/Logo.png'
-
+import modalImage from "../assets/images/Logo.png";
+import { applyToEvent } from "../lib/services/applicationService";
 
 const Application = () => {
+  const { eventId } = useParams(); // ✅ Get eventId from the URL
+  const navigate = useNavigate();
+
   const [form, setForm] = useState({
     regNo: "",
     name: "",
@@ -19,101 +23,77 @@ const Application = () => {
     solution: "",
     targetMarket: "",
     revenueModel: "",
-  })
+  });
 
-  // Steps Management
   const [currentStep, setCurrentStep] = useState(0);
   const steps = ["Personal Details", "Business Pitch", "Review & Submit"];
-
-  // Modal State
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
-  // const [isFormValid, setIsFormValid]= useState(false)
-
-
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleChange = (key: string, value: string) => {
-    setForm({ ...form, [key]: value })
-  }
+    setForm({ ...form, [key]: value });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const api = "http://localhost:3000/api/v1/apply"
+    e.preventDefault();
+
+    if (!eventId) {
+      alert("Invalid or missing event ID. Please go back and try again.");
+      navigate("/");
+      return;
+    }
 
     try {
-      const res = await fetch(api, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(form)
-      });
-
-      const data = await res.json()
-
-      if (res.ok) {
-        setIsModalOpen(true);
-        console.log("Application saved",data)
-        console.log(data.message)
-      }else{
-        alert(data.message || "Error submitting application");
-      }
-    } catch (error) {
-      console.error(error);
+      const response = await applyToEvent(eventId, form);
+      console.log("✅ Application submitted:", response);
+      setIsModalOpen(true);
+    } catch (error: any) {
+      console.error("❌ Error submitting application:", error);
+      alert(error.message || "Error submitting application");
     }
-  }
+  };
 
-  const nextStep = () => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1)
-    }
-  }
-
-  const prevStep = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1)
-    }
-  }
-
-
+  const nextStep = () => currentStep < steps.length - 1 && setCurrentStep(currentStep + 1);
+  const prevStep = () => currentStep > 0 && setCurrentStep(currentStep - 1);
 
   return (
-    <div className="min-h-screen flex justify-center items-center bg-secondary  md:p-8">
+    <div className="min-h-screen flex justify-center items-center bg-secondary md:p-8">
       <Navigation />
+
       <form
         onSubmit={handleSubmit}
         className="bg-white mx-6 mb-24 mt-20 shadow-xl rounded-2xl p-6 md:p-8 w-full max-w-6xl space-y-8"
       >
-        {/* Form Header with Progress Indicator */}
+        {/* ===== Header ===== */}
         <div className="text-center">
-          <h1 className="text-2xl  text-start md:text-center md:text-4xl font-bold bg-green-200 bg-clip-text text-transparent mb-3">
+          <h1 className="text-2xl text-start md:text-center md:text-4xl font-bold bg-green-200 bg-clip-text text-transparent mb-3">
             Startup Incubation Program
-            <hr  className="bg-green-200 my-2"/>
+            <hr className="bg-green-200 my-2" />
           </h1>
           <p className="text-gray-600 mb-6 text-sm text-start md:text-lg md:text-center">
             Apply for our entrepreneurship program and bring your idea to life
           </p>
 
           {/* Progress Bar */}
-          <div className=" relative w-full">
-
-            <div className="absolute top-1/5 md:top-1/3 left-0 right-0 h-1 bg-gray-200 -translate-y-1/2" />
-
+          <div className="relative w-full">
+            <div className="absolute left-0 right-0 h-1 bg-gray-200 -translate-y-1/2" />
             <div
-              className="absolute  top-1/5 sm:top-1/3   left-0 h-1 bg-green-200 -translate-y-1/2 transition-all duration-300"
-              style={{
-                width: `${(currentStep / (steps.length - 1)) * 100}%`,
-              }}
+              className="absolute left-0 h-1 bg-green-200 -translate-y-1/2 transition-all duration-300"
+              style={{ width: `${(currentStep / (steps.length - 1)) * 100}%` }}
             />
-            {/* Steps Indicators */}
             <div className="relative flex justify-between mt-12 w-full">
               {steps.map((step, index) => (
-                <div key={index} className="relative z-10 flex-col  items-center">
+                <div key={index} className="relative z-10 flex-col items-center">
                   <div
-                    className={`h-8 w-8 md:w-12 md:h-12 rounded-full flex items-center justify-center text-white font-bold transition-colors duration-300 ${currentStep >= index ? "bg-green-200" : "bg-gray-400 text-dark"}`}>
+                    className={`h-8 w-8 md:w-12 md:h-12 rounded-full flex items-center justify-center text-white font-bold transition-colors duration-300 ${
+                      currentStep >= index ? "bg-green-200" : "bg-gray-400 text-dark"
+                    }`}
+                  >
                     {index + 1}
                   </div>
                   <span
-                    className={`mt-2 text-sm italic font-medium ${currentStep === index ? "text-green-900" : "text-gray-300"}`}
+                    className={`mt-2 text-sm italic font-medium ${
+                      currentStep === index ? "text-green-900" : "text-gray-300"
+                    }`}
                   >
                     {step}
                   </span>
@@ -123,14 +103,14 @@ const Application = () => {
           </div>
         </div>
 
-        {/* Step 1: Personal Details */}
+        {/* ===== Step 1: Personal Details ===== */}
         {currentStep === 0 && (
           <div className="space-y-6 mt-28">
             <div className="flex items-center mb-4">
-              <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center text-white font-bold mr-3">1</div>
-              <h2 className="text-xl font-bold text-dark font-serif italic">
-                Personal Details
-              </h2>
+              <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center text-white font-bold mr-3">
+                1
+              </div>
+              <h2 className="text-xl font-bold text-dark font-serif italic">Personal Details</h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-20">
@@ -142,7 +122,6 @@ const Application = () => {
                 onChange={(e) => handleChange("name", e.target.value)}
                 required
               />
-
               <InputField
                 label="Email"
                 type="email"
@@ -151,7 +130,6 @@ const Application = () => {
                 onChange={(e) => handleChange("email", e.target.value)}
                 required
               />
-
               <InputField
                 label="Reg No"
                 value={form.regNo}
@@ -159,7 +137,6 @@ const Application = () => {
                 onChange={(e) => handleChange("regNo", e.target.value)}
                 required
               />
-
               <InputField
                 label="Phone Number"
                 value={form.phone}
@@ -172,11 +149,13 @@ const Application = () => {
           </div>
         )}
 
-        {/* Step 2: Business Pitch */}
+        {/* ===== Step 2: Business Pitch ===== */}
         {currentStep === 1 && (
           <div className="space-y-6">
             <div className="flex items-center mb-2">
-              <div className="h-10 w-10 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold mr-3">2</div>
+              <div className="h-10 w-10 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold mr-3">
+                2
+              </div>
               <h2 className="text-xl font-bold text-gray-800 mb-2">
                 Business Pitch
                 <hr className="bg-green-200" />
@@ -184,23 +163,24 @@ const Application = () => {
             </div>
 
             <p className="text-dark font-serif italic mb-6">
-              Describe your business idea in detail. We've included guidance to help you with each section.
+              Describe your business idea in detail. We've included guidance to help you with each
+              section.
             </p>
 
             <div className="space-y-6 grid grid-cols-1 md:grid-cols-2 gap-6 mb-20">
               {businessSections.map((section, index) => (
-                <div key={index} className="space-y-2 bg-secondary/10 px-3 py-2 rounded-2xl shadow-2xl border-2 border-gray-500/20 ">
-                  <h3 className="font-semibold text-dark font-serif  text-lg">{section.title}</h3>
-
+                <div
+                  key={index}
+                  className="space-y-2 bg-secondary/10 px-3 py-2 rounded-2xl shadow-2xl border-2 border-gray-500/20"
+                >
+                  <h3 className="font-semibold text-dark font-serif text-lg">{section.title}</h3>
                   <p className="text-sm text-dark font-serif italic mb-3">{section.description}</p>
-
                   <div className="bg-amber-50 p-3 rounded-lg border border-amber-200">
                     <p className="text-xs font-serif italic text-amber-700 flex items-start">
                       <span className="mr-2">💡</span>
                       {section.guidance}
                     </p>
                   </div>
-
                   <InputField
                     textarea
                     value={form[section.key as keyof typeof form]}
@@ -214,10 +194,9 @@ const Application = () => {
           </div>
         )}
 
-        {/* Step 3: Review */}
+        {/* ===== Step 3: Review ===== */}
         {currentStep === 2 && (
           <div className="space-y-8">
-            {/* Header */}
             <div className="flex items-center mb-2">
               <div className="h-10 w-10 rounded-full bg-green-200 flex items-center justify-center text-white font-bold mr-3">
                 3
@@ -229,7 +208,6 @@ const Application = () => {
               Please double-check your details before submitting.
             </p>
 
-            {/* Personal Details Section */}
             <div className="bg-white p-6 rounded-xl shadow-md border border-gray-200">
               <h3 className="font-semibold text-lg text-emerald-600 mb-4 border-b pb-2">
                 Personal Details
@@ -242,11 +220,8 @@ const Application = () => {
               </div>
             </div>
 
-            {/* Business Pitch Section */}
             <div className="bg-white p-6 rounded-xl shadow-md border border-gray-200">
-              <h3 className="font-semibold text-lg text-green-100 mb-4 border-b pb-2">
-                Business Pitch
-              </h3>
+              <h3 className="font-semibold text-lg text-green-100 mb-4 border-b pb-2">Business Pitch</h3>
               <div className="space-y-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                 {businessSections.map((section, index) => (
                   <ReviewField
@@ -261,11 +236,9 @@ const Application = () => {
           </div>
         )}
 
-
-        {/* Navigation Buttons */}
+        {/* ===== Navigation Buttons ===== */}
         <div className="fixed px-6 bottom-3 left-1/2 transform -translate-x-1/2 w-full max-w-6xl">
           <div className="flex justify-between items-center bg-white/90 backdrop-blur-md px-6 py-4 rounded-xl shadow-lg border border-gray-200">
-
             {currentStep > 0 ? (
               <button
                 type="button"
@@ -289,15 +262,15 @@ const Application = () => {
             ) : (
               <button
                 type="submit"
-                className="px-6 py-2 bg-green-100 text-white rounded-md font-medium hover:opacity-90 transition-opacity shadow-lg  cursor-pointer shadow-emerald-100"
+                className="px-6 py-2 bg-green-100 text-white rounded-md font-medium hover:opacity-90 transition-opacity shadow-lg cursor-pointer shadow-emerald-100"
               >
                 Submit Application
               </button>
             )}
           </div>
         </div>
-
       </form>
+
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -307,6 +280,6 @@ const Application = () => {
       />
     </div>
   );
-}
+};
 
-export default Application
+export default Application;
