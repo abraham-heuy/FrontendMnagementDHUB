@@ -1,335 +1,231 @@
-import React, { useState, type ReactNode } from "react";
-import { motion } from "framer-motion";
-import SecuritySection from "./seurityComponent";
+import { useEffect, useState } from "react";
+import { updateAdminDetails } from "../../lib/services/usersService";
+import type { User } from "../../lib/types/user";
+import { fetchMe } from "../../utils/api";
 
-// Types for settings sections
-interface SettingSection {
-  id: string;
-  title: string;
-  description: string;
-  content: ReactNode;
+interface AdminFormData {
+  fullName?: string;
+  email?: string;
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
 }
 
-const AccountSettings: React.FC = () => {
-  const [search, setSearch] = useState("");
-  const [showModal, setShowModal] = useState(false);
-  const [pendingSection, setPendingSection] = useState<string | null>(null);
-
-  // Profile state
-  const [profile, setProfile] = useState({
-    name: "Alice Johnson",
-    email: "alice@example.com",
-    avatar: "",
+const AdminProfileSettings = () => {
+  const [profile, setProfile] = useState<User | null>(null);
+  const [formData, setFormData] = useState<AdminFormData>({
+    fullName: "",
+    email: "",
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
   });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
 
-  // Appearance state
-  const [theme, setTheme] = useState("light");
-  const [fontSize, setFontSize] = useState("medium");
-  const [accentColor, setAccentColor] = useState("sky");
-  const [density, setDensity] = useState("comfortable");
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const data = await fetchMe();
+        setProfile(data.user);
 
-  // Security state
-  const [passwords, setPasswords] = useState({
-    current: "",
-    new: "",
-    confirm: "",
-  });
+        // Prefill the form with fetched profile values
+        setFormData({
+          fullName: data.user?.fullName || "",
+          email: data.user?.email || "",
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
+      } catch (err) {
+        console.error(err);
+        setMessage("Failed to load profile.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProfile();
+  }, []);
 
-  // Data & Privacy state
-  const [dataSettings, setDataSettings] = useState({
-    analytics: true,
-    newsletters: false,
-    terms: "Enter your terms and conditions here...",
-  });
-
-  const handleProfileChange = (field: string, value: string) => {
-    setProfile((prev) => ({ ...prev, [field]: value }));
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSaveClick = (sectionId: string) => {
-    setPendingSection(sectionId);
-    setShowModal(true);
+  const validatePassword = () => {
+    const { newPassword, confirmPassword } = formData;
+    if (!newPassword) return null;
+
+    if (newPassword !== confirmPassword) {
+      return "❌ New password and confirm password do not match.";
+    }
+    if (newPassword.length < 8) {
+      return "❌ Password must be at least 8 characters long.";
+    }
+    if (!/(?=.*[A-Za-z])(?=.*\d)/.test(newPassword)) {
+      return "❌ Password must contain at least one letter and one number.";
+    }
+    return null;
   };
 
-  const confirmSave = () => {
-    console.log("Changes saved for section:", pendingSection);
-    setShowModal(false);
-    setPendingSection(null);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const pwdError = validatePassword();
+    if (pwdError) {
+      setMessage(pwdError);
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setMessage("");
+
+      const updateData: any = {
+        fullName: formData.fullName,
+        email: formData.email,
+      };
+      if (formData.newPassword) updateData.password = formData.newPassword;
+
+      const updatedUser = await updateAdminDetails(updateData);
+      setProfile(updatedUser);
+      setMessage("✅ Profile updated successfully!");
+
+      // Reset password fields but keep name/email in form
+      setFormData({
+        fullName: updatedUser.fullName,
+        email: updatedUser.email,
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+    } catch (err) {
+      console.error(err);
+      setMessage("❌ Failed to update profile. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const sections: SettingSection[] = [
-    {
-      id: "profile",
-      title: "Profile",
-      description: "Manage your personal information and profile details.",
-      content: (
-        <div className="space-y-4">
-          {/* Full Name */}
-          <div>
-            <label className="block text-sm font-medium text-slate-600 mb-1">
-              Full Name
-            </label>
-            <input
-              type="text"
-              value={profile.name}
-              onChange={(e) => handleProfileChange("name", e.target.value)}
-              className="w-full border rounded-xl p-2 text-sm focus:ring-2 focus:ring-sky-400"
-            />
-          </div>
-
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-medium text-slate-600 mb-1">
-              Email
-            </label>
-            <input
-              type="email"
-              value={profile.email}
-              onChange={(e) => handleProfileChange("email", e.target.value)}
-              className="w-full border rounded-xl p-2 text-sm focus:ring-2 focus:ring-sky-400"
-            />
-          </div>
-
-          {/* Profile Picture */}
-          <div>
-            <label className="block text-sm font-medium text-slate-600 mb-1">
-              Profile Picture
-            </label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) =>
-                handleProfileChange("avatar", e.target.files?.[0]?.name || "")
-              }
-              className="w-full border rounded-xl p-2 text-sm focus:ring-2 focus:ring-sky-400"
-            />
-            {profile.avatar && (
-              <p className="text-xs text-slate-500 mt-1">
-                Uploaded: {profile.avatar}
-              </p>
-            )}
-          </div>
-        </div>
-      ),
-    },
-    {
-      id: "appearance",
-      title: "Appearance",
-      description: "Customize how your dashboard looks.",
-      content: (
-        <div className="space-y-4">
-          {/* Theme */}
-          <div>
-            <label className="block text-sm font-medium text-slate-600 mb-1">
-              Theme
-            </label>
-            <select
-              value={theme}
-              onChange={(e) => setTheme(e.target.value)}
-              className="w-full border rounded-xl p-2 text-sm focus:ring-2 focus:ring-sky-400"
-            >
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
-              <option value="system">System Default</option>
-            </select>
-          </div>
-
-          {/* Font Size */}
-          <div>
-            <label className="block text-sm font-medium text-slate-600 mb-1">
-              Font Size
-            </label>
-            <select
-              value={fontSize}
-              onChange={(e) => setFontSize(e.target.value)}
-              className="w-full border rounded-xl p-2 text-sm focus:ring-2 focus:ring-sky-400"
-            >
-              <option value="small">Small</option>
-              <option value="medium">Medium</option>
-              <option value="large">Large</option>
-            </select>
-          </div>
-
-          {/* Accent Color */}
-          <div>
-            <label className="block text-sm font-medium text-slate-600 mb-1">
-              Accent Color
-            </label>
-            <select
-              value={accentColor}
-              onChange={(e) => setAccentColor(e.target.value)}
-              className="w-full border rounded-xl p-2 text-sm focus:ring-2 focus:ring-sky-400"
-            >
-              <option value="sky">Sky</option>
-              <option value="emerald">Emerald</option>
-              <option value="rose">Rose</option>
-              <option value="violet">Violet</option>
-            </select>
-          </div>
-
-          {/* Layout Density */}
-          <div>
-            <label className="block text-sm font-medium text-slate-600 mb-1">
-              Layout Density
-            </label>
-            <select
-              value={density}
-              onChange={(e) => setDensity(e.target.value)}
-              className="w-full border rounded-xl p-2 text-sm focus:ring-2 focus:ring-sky-400"
-            >
-              <option value="comfortable">Comfortable</option>
-              <option value="compact">Compact</option>
-            </select>
-          </div>
-        </div>
-      ),
-    },
-    {
-      id: "security",
-      title: "Security",
-      description: "Change your password and secure your account.",
-      content: <SecuritySection/>,
-    },
-    {
-      id: "data",
-      title: "Data & Privacy",
-      description: "Control how your data is used.",
-      content: (
-        <div className="space-y-4">
-          <label className="flex items-center gap-2 text-sm text-slate-700">
-            <input
-              type="checkbox"
-              checked={dataSettings.analytics}
-              onChange={(e) =>
-                setDataSettings({ ...dataSettings, analytics: e.target.checked })
-              }
-            />
-            Allow usage analytics
-          </label>
-
-          <label className="flex items-center gap-2 text-sm text-slate-700">
-            <input
-              type="checkbox"
-              checked={dataSettings.newsletters}
-              onChange={(e) =>
-                setDataSettings({
-                  ...dataSettings,
-                  newsletters: e.target.checked,
-                })
-              }
-            />
-            Receive newsletters
-          </label>
-
-          {/* Terms & Conditions */}
-          <div>
-            <label className="block text-sm font-medium text-slate-600 mb-1">
-              Terms & Conditions
-            </label>
-            <textarea
-              value={dataSettings.terms}
-              onChange={(e) =>
-                setDataSettings({ ...dataSettings, terms: e.target.value })
-              }
-              rows={5}
-              className="w-full border rounded-xl p-2 text-sm focus:ring-2 focus:ring-sky-400"
-            />
-          </div>
-        </div>
-      ),
-    },
-  ];
-
-  const filteredSections = sections.filter(
-    (s) =>
-      s.title.toLowerCase().includes(search.toLowerCase()) ||
-      s.description.toLowerCase().includes(search.toLowerCase())
-  );
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-96">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-green-500 border-solid"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-4 lg:p-6 w-full">
-      {/* Header */}
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold text-slate-800">
-          Account Settings
-        </h2>
-        <p className="text-sm text-slate-500">
-          Manage your account preferences and privacy options.
-        </p>
-      </div>
+    <div className="max-w-3xl mx-auto p-6">
+      <h2 className="text-2xl font-bold text-gray-800 mb-2">Account</h2>
+      <p className="text-gray-500 mb-8">Manage your admin profile</p>
 
-      {/* Search Bar */}
-      <div className="mb-6">
-        <input
-          type="text"
-          placeholder="Search settings..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full border rounded-xl p-2 text-sm focus:ring-2 focus:ring-sky-400"
+      {/* Profile Picture */}
+      <div className="flex items-center gap-6 mb-8">
+        <img
+          src={ "https://randomuser.me/api/portraits/men/32.jpg"}
+          alt="Profile"
+          className="w-24 h-24 rounded-full object-cover border border-gray-200 shadow-sm"
         />
-      </div>
-
-      {/* Settings Sections */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {filteredSections.map((section, index) => (
-          <motion.div
-            key={section.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className="bg-white shadow rounded-2xl p-6 flex flex-col"
+        <div>
+          <p className="text-gray-700 font-medium">Profile picture</p>
+          <p className="text-gray-400 text-sm mb-2">PNG, JPG up to 5MB</p>
+          <button
+            className="text-green-600 font-semibold hover:underline transition"
+            onClick={() => alert("Image upload not yet supported.")}
           >
-            <h3 className="text-lg font-semibold text-slate-800 mb-2">
-              {section.title}
-            </h3>
-            <p className="text-sm text-slate-500 mb-4">{section.description}</p>
-            {section.content}
-            <div className="mt-4 flex justify-end">
-              <button
-                onClick={() => handleSaveClick(section.id)}
-                className="px-4 py-2 text-sm bg-sky-500 text-white rounded-xl hover:bg-sky-600 transition"
-              >
-                Save Changes
-              </button>
-            </div>
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Confirmation Modal */}
-      {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40 backdrop-blur-sm">
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="bg-white rounded-2xl shadow-lg p-6 w-full max-w-md"
-          >
-            <h3 className="text-lg font-semibold text-slate-800 mb-4">
-              Confirm Changes
-            </h3>
-            <p className="text-sm text-slate-600 mb-6">
-              Are you sure you want to save changes to{" "}
-              <span className="font-medium">{pendingSection}</span> settings?
-            </p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowModal(false)}
-                className="px-4 py-2 text-sm rounded-xl border text-slate-600 hover:bg-slate-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmSave}
-                className="px-4 py-2 text-sm rounded-xl bg-sky-500 text-white hover:bg-sky-600"
-              >
-                Confirm
-              </button>
-            </div>
-          </motion.div>
+            Update
+          </button>
         </div>
+      </div>
+
+      {/* Profile Details Form */}
+      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md space-y-6">
+        {/* Name & Email */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">Full Name</label>
+            <input
+              type="text"
+              name="fullName"
+              value={formData.fullName}
+              onChange={handleChange}
+              placeholder="Enter full name"
+              className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">Email Address</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="Enter email"
+              className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
+          </div>
+        </div>
+
+        {/* Password Section */}
+        <div>
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">Change Password</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm text-gray-600 mb-1">Current Password</label>
+              <input
+                type="password"
+                name="currentPassword"
+                value={formData.currentPassword}
+                onChange={handleChange}
+                className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-gray-600 mb-1">New Password</label>
+              <input
+                type="password"
+                name="newPassword"
+                value={formData.newPassword}
+                onChange={handleChange}
+                className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-gray-600 mb-1">Confirm New Password</label>
+              <input
+                type="password"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Save Button */}
+        <div className="mt-6 flex justify-end">
+          <button
+            type="submit"
+            disabled={saving}
+            className={`px-5 py-2 rounded-md font-semibold text-white transition ${
+              saving ? "bg-green-400 cursor-not-allowed" : "bg-green-600 hover:bg-green-700"
+            }`}
+          >
+            {saving ? "Saving..." : "Save Changes"}
+          </button>
+        </div>
+      </form>
+
+      {/* Message */}
+      {message && (
+        <p className={`mt-4 text-center font-medium ${message.startsWith("✅") ? "text-green-600" : "text-red-500"}`}>
+          {message}
+        </p>
       )}
     </div>
   );
 };
 
-export default AccountSettings;
+export default AdminProfileSettings;

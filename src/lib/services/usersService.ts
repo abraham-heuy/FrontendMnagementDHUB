@@ -100,3 +100,28 @@ export const deleteUser = async (id: string): Promise<void> => {
     throw new Error(`Failed to delete user with ID: ${id}`);
   }
 };
+
+
+// usersService.ts
+export const updateAdminDetails = async (data: {
+  fullName?: string;
+  email?: string;
+  password?: string;
+}): Promise<User> => {
+  const res = await fetch(`${API_URL}/users/self`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to update admin details");
+  }
+
+  const result = await res.json();
+
+  if (result.user) return result.user;
+
+  throw new Error("Unexpected response format");
+};
