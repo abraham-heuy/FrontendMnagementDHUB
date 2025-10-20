@@ -23,3 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+*.zip
+*.rar
+*.mp4
+*.mov
