@@ -18,7 +18,7 @@ export type DashboardTab =
   | "dashboard"
   | "events"
   | "applications"
-  | "students"
+  | "mentees"
   | "mentors"
   | "notifications"
   | "analytics"
@@ -41,7 +41,7 @@ const menuGroups: {
   {
     title: "People",
     items: [
-      { key: "students", label: "Student Management", icon: <Users />, path: "/dashboard/admin/students" },
+      { key: "mentees", label: "Mentee Management", icon: <Users />, path: "/dashboard/admin/mentees" },
       { key: "mentors", label: "Mentors", icon: <UserCheck />, path: "/dashboard/admin/mentors" },
       { key: "notifications", label: "Notifications", icon: <Bell />, path: "/dashboard/admin/notifications" },
     ],

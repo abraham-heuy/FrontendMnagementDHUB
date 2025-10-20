@@ -16,6 +16,9 @@ import {
   getEvents,
   updateEvent,
   deleteEvent,
+  getRoles,
+  getStages,
+  type StageDto,
 } from "../../lib/services/eventService";
 
 const emptyForm = {
@@ -28,6 +31,7 @@ const emptyForm = {
   timeTo: "",
   details: "",
   category: "hackathon",
+  targetAudience: "",
 };
 import type { Event } from "../../lib/types/events";
 
@@ -49,18 +53,29 @@ const Events: React.FC = () => {
   const [editing, setEditing] = useState(false);
   const [editDraft, setEditDraft] = useState<Event | null>(null);
   const [customCategory, setCustomCategory] = useState("");
+  const [roles, setRoles] = useState<{ id: string; name: string }[]>([]);
+  const [stages, setStages] = useState<StageDto[]>([]);
+
   //fetch the events!
   useEffect(() => {
-    const fetchData = async () => {
+    const loadAllData = async () => {
       try {
-        const list = await getEvents();
-        setEvents(list);
+        const [eventList, rolesList, stagesList] = await Promise.all([
+          getEvents(),
+          getRoles(),
+          getStages(),
+        ]);
+        setEvents(eventList);
+        setRoles(rolesList);
+        setStages(stagesList);
       } catch (err) {
-        console.error("Failed to fetch events:", err);
+        console.error("Failed to load events/roles/stages:", err);
       }
     };
-    fetchData();
+
+    loadAllData();
   }, []);
+
   const filteredEvents = useMemo(() => {
     let list = [...events].sort((a, b) => (a.date < b.date ? 1 : -1));
     if (query.trim()) {
@@ -322,6 +337,30 @@ const Events: React.FC = () => {
               {errors.objective && (
                 <p className="mt-1 text-xs text-red-600">{errors.objective}</p>
               )}
+            </div>
+            {/* Target Audience Dropdown */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700">
+                Target Audience
+              </label>
+              <select
+                value={form.targetAudience}
+                onChange={(e) =>
+                  setForm({ ...form, targetAudience: e.target.value })
+                }
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-sky-300 bg-white"
+              >
+                <option value="">Select target audience...</option>
+                {roles.length > 0 ? (
+                  roles.map((role) => (
+                    <option key={role.id} value={role.name}>
+                      {role.name}
+                    </option>
+                  ))
+                ) : (
+                  <option disabled>Loading roles...</option>
+                )}
+              </select>
             </div>
           </div>
 

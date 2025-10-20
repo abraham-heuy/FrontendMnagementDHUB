@@ -6,6 +6,7 @@ export interface User {
   regNumber: string;
   role: string;       // e.g. "admin", "student", "mentor"
   stage?: string | null;  // only students have stage
+  currentProject?:string | null,
   createdAt?: string;
   updatedAt?: string;
 }

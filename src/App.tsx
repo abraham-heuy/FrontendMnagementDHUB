@@ -9,7 +9,6 @@ import About from "./pages/About";
 import DashboardOverview from "./components/Admin/home";
 import Events from "./components/Admin/events";
 import Applications from "./components/Admin/applications";
-import StudentManagement from "./components/Admin/students";
 import MentorManagement from "./components/Admin/mentors";
 import Notifications from "./components/Admin/notifications";
 import Analytics from "./components/Admin/analytics";
@@ -31,6 +30,7 @@ import MentorNotifications from "./components/Mentor/notifyMentees";
 import LogoutMentor from "./components/Mentor/logout";
 import MentorProfileComponent from "./components/Mentor/profile";
 import MentorLogin from "./components/Mentor/auth";
+import MenteeManagement from "./components/Admin/mentees";
 // Correct the import path and filename case if needed
 
 const App = () => {
@@ -51,7 +51,7 @@ const App = () => {
             <Route path="home" element={<DashboardOverview />} />
             <Route path="events" element={<Events />} />
             <Route path="applications" element={<Applications />} />
-            <Route path="students" element={<StudentManagement />} />
+            <Route path="mentees" element={<MenteeManagement />} />
             <Route path="mentors" element={<MentorManagement />} />
             <Route path="notifications" element={<Notifications />} />
             <Route path="analytics" element={<Analytics />} />
@@ -63,7 +63,7 @@ const App = () => {
         </Route>
 
         {/* Student routes (protected) */}
-        <Route element={<ProtectedRoute requiredRole="student" />}>
+        <Route element={<ProtectedRoute requiredRole="mentee" />}>
           <Route path="/dashboard/student/*" element={<StudentPage />}>
             <Route path="main" element={<Main />} />
             <Route path="progress" element={<StatusProgess />} />

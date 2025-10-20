@@ -81,3 +81,31 @@ export const getEventsByCategory = async (category: string): Promise<Event[]> =>
 
   throw new Error("Unexpected response format for events by category");
 };
+
+
+// add to your existing service file
+export const getRoles = async (): Promise<{ id: string; name: string }[]> => {
+  const res = await fetch(`${API_URL}/events/roles`, {
+    credentials: "include",
+  });
+  if (!res.ok) throw new Error("Failed to fetch roles");
+  const data = await res.json();
+  // data.roles expected
+  return Array.isArray(data.roles) ? data.roles : [];
+};
+
+export type StageDto = {
+  stage_id: string;
+  name: string;
+  order: number;
+  substages?: { substage_id: string; name: string; order: number }[];
+};
+
+export const getStages = async (): Promise<StageDto[]> => {
+  const res = await fetch(`${API_URL}/events/stages`, {
+    credentials: "include",
+  });
+  if (!res.ok) throw new Error("Failed to fetch stages");
+  const data = await res.json();
+  return Array.isArray(data.stages) ? data.stages : [];
+};
