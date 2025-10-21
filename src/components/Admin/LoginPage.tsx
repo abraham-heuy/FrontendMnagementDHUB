@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { loginAdmin } from "../../utils/api";
-import { FaEnvelope, FaLock, FaArrowLeft } from "react-icons/fa";
+import { FaEnvelope, FaLock } from "react-icons/fa";
 
 interface AdminLoginProps {
   onLogin?: () => void;
@@ -88,9 +88,8 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
               placeholder="admin@learnhub.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
-                errors.email ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-green-500"
-              } focus:ring-2 focus:ring-green-200 outline-none transition-colors duration-200`}
+              className={`w-full pl-10 pr-4 py-3 rounded-lg border ${errors.email ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-green-500"
+                } focus:ring-2 focus:ring-green-200 outline-none transition-colors duration-200`}
             />
           </div>
           {errors.email && (
@@ -112,9 +111,8 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
               placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className={`w-full pl-10 pr-12 py-3 rounded-lg border ${
-                errors.password ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-green-500"
-              } focus:ring-2 focus:ring-green-200 outline-none transition-colors duration-200`}
+              className={`w-full pl-10 pr-12 py-3 rounded-lg border ${errors.password ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-green-500"
+                } focus:ring-2 focus:ring-green-200 outline-none transition-colors duration-200`}
             />
             <button
               type="button"
@@ -143,7 +141,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white py-3 px-4 rounded-lg font-semibold transition-colors duration-200 focus:ring-2 focus:ring-green-200 focus:ring-offset-2"
+          className="w-full bg-green-800 hover:bg-green-900 disabled:bg-gray-100 cursor-pointer text-white py-3 px-4 rounded-lg font-semibold transition-colors duration-200 focus:ring-2 focus:ring-green-200 focus:ring-offset-2"
         >
           {loading ? (
             <div className="flex items-center justify-center">
@@ -207,7 +205,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
                     </button>
                     <button
                       type="submit"
-                      className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200"
+                      className="px-4 py-2 text-sm bg-green-800 text-white rounded-lg hover:bg-green-900 transition-colors duration-200"
                     >
                       Send Reset Link
                     </button>

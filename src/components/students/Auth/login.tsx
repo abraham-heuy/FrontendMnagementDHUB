@@ -3,7 +3,6 @@ import { useNavigate, Link } from "react-router-dom";
 import { loginStudent } from "../../../utils/api";
 import success from "../../../assets/images/success.png";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/16/solid";
-import InputField from "../../InputField";
 import Modal from "../../Modal";
 import { FaEnvelope, FaLock } from "react-icons/fa";
 

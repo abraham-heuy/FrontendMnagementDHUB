@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import InputField from "../components/InputField";
 import ReviewField from "../components/ReviewFiel";
 import { businessSections } from "../data/data";
 import Navigation from "../components/Navigation";
 import Modal from "../components/Modal";
 import modalImage from "../assets/images/Logo.png";
 import { applyToEvent } from "../lib/services/applicationService";
+import InputField from "../components/InputField";
 
 const Application = () => {
   const { eventId } = useParams(); // ✅ Get eventId from the URL

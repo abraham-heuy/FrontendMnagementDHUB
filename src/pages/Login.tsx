@@ -12,9 +12,9 @@ import {
   FaSignInAlt,
   FaHome,
 } from "react-icons/fa";
+import { loginBanner } from "../constants/Index";
 
-// Import your image - you can replace this with your actual image path
-import loginIllustration from "../assets/images/mentor_illustration.png"; // Update this path
+// Imports of assets
 
 const roles = [
   {
@@ -75,25 +75,24 @@ const Login = () => {
             className="w-full flex"
           >
             {/* Image Section - Hidden on mobile, visible on large devices */}
-            <div className="hidden lg:flex lg:flex-1 lg:items-center lg:justify-center bg-green-50 p-8">
-              <div className="max-w-md w-full">
+            <div className="hidden lg:flex lg:flex-1 lg:items-center lg:justify-center bg-gradient-to-br from-green-50 to-emerald-50 p-12 shadow-dark">
+              <div className="max-w-lg w-full">
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.2, duration: 0.5 }}
-                  className="text-center"
+                  className="text-start text-gray-800"
                 >
-                  <img
-                    src={loginIllustration}
-                    alt="LearnHub Login"
-                    className="w-full h-auto max-h-96 object-contain rounded-2xl shadow-lg"
-                  />
-                  <div className="mt-8">
-                    <h3 className="text-2xl font-bold text-gray-800 mb-4">
-                      Welcome DeSIC (Dekut Startup & Incubation Centre)
-                    </h3>
-                    <p className="text-gray-600">
-                      Join our community of inovators to transform ideas into reality.
+                  <div className="mb-8 p-4">
+                    <img
+                      src={loginBanner}
+                      alt="Login"
+                      className="w-full h-auto max-h-[400px] object-cover rounded-2xl shadow-2xl"
+                    />
+                  </div>
+                  <div className="px-6">
+                    <p className="text-gray-600 text-lg">
+                      Join our community of innovators to transform ideas into reality.
                     </p>
                   </div>
                 </motion.div>
@@ -119,7 +118,7 @@ const Login = () => {
                       <span className="text-sm font-medium">Back to Home</span>
                     </button>
                     <div className="text-green-600 font-bold text-lg">
-                      LearnHub
+                      DeSIC
                     </div>
                   </div>
 
@@ -186,27 +185,29 @@ const Login = () => {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.3 }}
-            className="w-full flex"
+            className="w-full flex "
           >
             {/* Image Section for Login Forms - Hidden on mobile, visible on large devices */}
-            <div className="hidden lg:flex lg:flex-1 lg:items-center lg:justify-center bg-green-50 p-8">
-              <div className="max-w-md w-full">
+            <div className="hidden lg:flex lg:flex-1 lg:items-center lg:justify-center bg-gradient-to-br from-green-50 to-emerald-50 p-12">
+              <div className="max-w-lg w-full">
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.2, duration: 0.5 }}
-                  className="text-center"
+                  className="text-start"
                 >
-                  <img
-                    src={loginIllustration}
-                    alt="LearnHub Login"
-                    className="w-full h-auto max-h-96 object-contain rounded-2xl shadow-lg"
-                  />
-                  <div className="mt-8">
-                    <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                  <div className="mb-8 p-4">
+                    <img
+                      src={loginBanner}
+                      alt="Login"
+                      className="w-full h-auto max-h-[400px] object-cover rounded-2xl shadow-2xl"
+                    />
+                  </div>
+                  <div className="px-6">
+                    <h3 className="text-2xl font-bold text-gray-800 mb-4">
                       {roles.find(r => r.id === selectedRole)?.label} Portal
                     </h3>
-                    <p className="text-gray-600">
+                    <p className="text-gray-600 text-lg">
                       Access your dedicated workspace and continue your journey
                     </p>
                   </div>
@@ -215,9 +216,9 @@ const Login = () => {
             </div>
 
             {/* Login Form Section */}
-            <div className="flex-1 flex items-center justify-center p-4 lg:p-8">
-              <div className="w-full max-w-md">
-                <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-emerald-100">
+            <div className="flex-1 flex items-center justify-center p-4 lg:p-8 ">
+              <div className="w-full max-w-md py-2">
+                <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-emerald-100 ">
                   {/* Header with Back Button and Role Badge */}
                   <div className="bg-green-800 p-6">
                     <div className="flex justify-between items-center mb-4">
