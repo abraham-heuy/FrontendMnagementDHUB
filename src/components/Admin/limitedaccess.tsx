@@ -37,10 +37,10 @@ const AccessDenied: React.FC = () => {
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          onClick={() => navigate("/admin/login")}
+          onClick={() => navigate("/auth")}
           className="px-5 py-2 rounded-lg bg-yellow-400 hover:bg-yellow-500 text-white font-semibold transition w-full"
         >
-          Go Back To Login
+          Go Back signIn Page
         </motion.button>
       </motion.div>
     </div>

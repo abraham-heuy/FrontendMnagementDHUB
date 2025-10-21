@@ -10,18 +10,147 @@ import {
   FaStar,
   FaChevronLeft,
   FaChevronRight,
+  FaUserShield,
+  FaChalkboardTeacher,
+  FaUserGraduate,
+  FaTimes,
+  FaSignInAlt,
 } from "react-icons/fa";
 import { getEvents, getEventsByCategory } from "../lib/services/eventService";
 import type { Event } from "../lib/types/events";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 const DedanGreen = "#0f5132";
+
+// Login Modal Component
+const LoginModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+  const [selectedRole, setSelectedRole] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  const roles = [
+    {
+      id: "admin",
+      color: "bg-green-600 hover:bg-green-700",
+      label: "Administrator",
+      icon: <FaUserShield className="text-xl" />,
+      description: "Manage platform operations"
+    },
+    {
+      id: "mentor",
+      color: "bg-emerald-600 hover:bg-emerald-700",
+      label: "Mentor",
+      icon: <FaChalkboardTeacher className="text-xl" />,
+      description: "Guide and support students"
+    },
+    {
+      id: "mentee",
+      color: "bg-green-100 hover:bg-green-700",
+      label: "Student / Mentee",
+      icon: <FaUserGraduate className="text-xl" />,
+      description: "Embarck on journey"
+    },
+  ];
+
+  const handleRoleSelect = (roleId: string) => {
+    setSelectedRole(roleId);
+    // Close modal and navigate to login page with role parameter
+    onClose();
+    navigate(`/auth?role=${roleId}`);
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50  backdrop-blur-md flex items-center justify-center z-50 p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.9 }}
+        className="bg-secondary rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-hidden"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div className="flex items-center space-x-3">
+            <div className="bg-green-600 text-white p-2 rounded-lg">
+              <FaSignInAlt className="text-xl" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">Welcome Back</h2>
+              <p className="text-sm text-gray-600">Choose your role to continue</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
+          >
+            <FaTimes className="text-xl" />
+          </button>
+        </div>
+
+        {/* Role Selection */}
+        <div className="p-6">
+          <AnimatePresence mode="wait">
+            {!selectedRole ? (
+              <motion.div
+                key="role-selection"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="space-y-4"
+              >
+                {roles.map((role) => (
+                  <motion.button
+                    key={role.id}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => handleRoleSelect(role.id)}
+                    className={`w-full flex items-center space-x-4 p-4 text-left text-white rounded-xl shadow-md transition-all duration-200 ${role.color}`}
+                  >
+                    <div className="flex-shrink-0">
+                      {role.icon}
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-semibold text-lg">
+                        {role.label}
+                      </div>
+                      <div className="text-sm text-white/90 font-light">
+                        {role.description}
+                      </div>
+                    </div>
+                    <FaArrowRight className="flex-shrink-0 text-white/80" />
+                  </motion.button>
+                ))}
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+
+          {/* Footer */}
+          <div className="mt-6 pt-4 border-t border-gray-200">
+            <p className="text-center text-gray-600 text-sm">
+              Don't have an account?{" "}
+              <button
+                onClick={() => {
+                  onClose();
+                  navigate("/apply");
+                }}
+                className="text-green-600 hover:text-green-700 font-semibold transition-colors duration-200"
+              >
+                Apply to become a mentee
+              </button>
+            </p>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
 
 const Landing = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
-  const [limit, setLimit] = useState(4); // display 4 by default
+  const [limit, setLimit] = useState(4);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const navigate = useNavigate();
 
   const testimonials = [
@@ -87,7 +216,10 @@ const Landing = () => {
   const displayedEvents = events.slice(0, limit);
 
   return (
-    <main>
+    <main className="relative">
+      {/* Login Modal */}
+      <LoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} />
+
       {/* ===== Hero Section ===== */}
       <section className="relative h-full">
         <Navigation
@@ -103,23 +235,23 @@ const Landing = () => {
               console.error("Error filtering events:", error);
             }
           }}
+          onLogin={() => setShowLoginModal(true)}
         />
-        <Hero />
+        <Hero onLogin={() => setShowLoginModal(true)} />
       </section>
 
       {/* ===== Events Section ===== */}
       <section className="py-16 md:py-24 bg-green-50 relative">
         <div className="wrapper">
           <div className="flex justify-between items-center">
-            <h2 className="subHeading text-[${DedanGreen}]">Upcoming Events</h2>
+            <h2 className="subHeading" style={{ color: DedanGreen }}>Upcoming Events</h2>
             {events.length > limit && (
-              <a
-                href="#!"
+              <button
                 onClick={() => setLimit(events.length)}
                 className="text-green-700 font-medium hover:underline flex items-center gap-1"
               >
                 View More <FaArrowRight />
-              </a>
+              </button>
             )}
           </div>
 
@@ -130,11 +262,11 @@ const Landing = () => {
                 className="bg-white rounded-xl shadow-lg p-6 flex flex-col h-full hover:shadow-xl transition-all duration-300 border border-green-100"
               >
                 <div className="flex items-start gap-4 mb-4">
-                  <div className="bg-green-100 p-3 rounded-full">
-                    <FaCalendarAlt className="text-[${DedanGreen}] text-2xl" />
+                  <div className="bg-green-100 p-3 rounded-full" style={{ color: DedanGreen }}>
+                    <FaCalendarAlt className="text-2xl" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-[${DedanGreen}] mb-1">
+                    <h3 className="text-xl font-bold mb-1" style={{ color: DedanGreen }}>
                       {event.title}
                     </h3>
                     <p className="text-sm text-gray-500 mb-2">
@@ -147,7 +279,8 @@ const Landing = () => {
                 </p>
                 <button
                   onClick={() => setSelectedEvent(event)}
-                  className="flex items-center text-[${DedanGreen}] font-medium group"
+                  className="flex items-center font-medium group"
+                  style={{ color: DedanGreen }}
                 >
                   Learn more
                   <FaArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
@@ -220,12 +353,20 @@ const Landing = () => {
               and inspire the next generation of innovators.
             </p>
 
-            <button
-              onClick={() => navigate("/mentor-login")}
-              className="bg-white text-[#0f5132] font-semibold px-8 py-3 rounded-full hover:bg-emerald-100 transition-all"
-            >
-              I am a Mentor
-            </button>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <button
+                onClick={() => navigate("/auth?role=mentor")}
+                className="bg-white text-[#0f5132] font-semibold px-8 py-3 rounded-full hover:bg-emerald-100 transition-all"
+              >
+                I am a Mentor
+              </button>
+              <button
+                onClick={() => setShowLoginModal(true)}
+                className="bg-transparent border border-white text-white font-semibold px-8 py-3 rounded-full hover:bg-white hover:text-[#0f5132] transition-all"
+              >
+                Sign In as Student
+              </button>
+            </div>
           </motion.div>
 
           <motion.div
@@ -248,7 +389,7 @@ const Landing = () => {
       {/* ===== Testimonials Carousel ===== */}
       <section className="py-20 bg-green-50 text-center relative">
         <div className="wrapper">
-          <h2 className="subHeading text-[${DedanGreen}] mb-12">
+          <h2 className="subHeading mb-12" style={{ color: DedanGreen }}>
             What Our Learners Say
           </h2>
 
@@ -261,31 +402,33 @@ const Landing = () => {
               className="bg-white rounded-xl shadow-lg p-8 mx-4"
             >
               <p className="text-gray-600 italic mb-6 text-lg">
-                “{testimonials[currentTestimonial].message}”
+                "{testimonials[currentTestimonial].message}"
               </p>
               <div className="flex justify-center mb-3">
                 {Array.from({ length: testimonials[currentTestimonial].rating }).map(
                   (_, i) => (
-                    <FaStar key={i} className="text-yellow-400" />
+                    <FaStar key={i} className="text-yellow-400 mx-1" />
                   )
                 )}
               </div>
-              <p className={`font-semibold text-[${DedanGreen}]`}>
+              <p className="font-semibold" style={{ color: DedanGreen }}>
                 {testimonials[currentTestimonial].name}
               </p>
             </motion.div>
 
             <button
               onClick={prevSlide}
-              className="absolute left-0 top-1/2 -translate-y-1/2 bg-white shadow-md rounded-full p-3 hover:bg-green-100"
+              className="absolute left-0 top-1/2 -translate-y-1/2 bg-white shadow-md rounded-full p-3 hover:bg-green-100 transition-colors"
+              style={{ color: DedanGreen }}
             >
-              <FaChevronLeft className={`text-[${DedanGreen}]`} />
+              <FaChevronLeft />
             </button>
             <button
               onClick={nextSlide}
-              className="absolute right-0 top-1/2 -translate-y-1/2 bg-white shadow-md rounded-full p-3 hover:bg-green-100"
+              className="absolute right-0 top-1/2 -translate-y-1/2 bg-white shadow-md rounded-full p-3 hover:bg-green-100 transition-colors"
+              style={{ color: DedanGreen }}
             >
-              <FaChevronRight className={`text-[${DedanGreen}]`} />
+              <FaChevronRight />
             </button>
           </div>
         </div>
