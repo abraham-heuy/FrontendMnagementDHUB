@@ -2,25 +2,28 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "../components/Navigation";
 import Hero from "../components/Hero";
-import Modal from "../components/Modal";
-import mentor_illustration from "../assets/images/mentor_illustrator.jpg";
 import {
-  FaCalendarAlt,
-  FaArrowRight,
   FaStar,
   FaChevronLeft,
   FaChevronRight,
   FaUserShield,
   FaChalkboardTeacher,
   FaUserGraduate,
-  FaTimes,
   FaSignInAlt,
 } from "react-icons/fa";
+import {
+  FiCalendar,
+  FiClock,
+  FiMapPin,
+  FiX,
+  FiArrowRight,
+  FiTag
+} from "react-icons/fi";
 import { getEvents, getEventsByCategory } from "../lib/services/eventService";
 import type { Event } from "../lib/types/events";
 import { motion, AnimatePresence } from "framer-motion";
-
-const DedanGreen = "#0f5132";
+import { mentorIllustration } from "../constants/Index";
+import { formatTime } from "../constants/Formats";
 
 // Login Modal Component
 const LoginModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
@@ -32,28 +35,27 @@ const LoginModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
       id: "admin",
       color: "bg-green-600 hover:bg-green-700",
       label: "Administrator",
-      icon: <FaUserShield className="text-xl" />,
+      icon: <FaUserShield className="text-lg" />,
       description: "Manage platform operations"
     },
     {
       id: "mentor",
       color: "bg-emerald-600 hover:bg-emerald-700",
       label: "Mentor",
-      icon: <FaChalkboardTeacher className="text-xl" />,
+      icon: <FaChalkboardTeacher className="text-lg" />,
       description: "Guide and support students"
     },
     {
       id: "mentee",
-      color: "bg-green-100 hover:bg-green-700",
+      color: "bg-blue-600 hover:bg-blue-700",
       label: "Student / Mentee",
-      icon: <FaUserGraduate className="text-xl" />,
-      description: "Embarck on journey"
+      icon: <FaUserGraduate className="text-lg" />,
+      description: "Embark on your journey"
     },
   ];
 
   const handleRoleSelect = (roleId: string) => {
     setSelectedRole(roleId);
-    // Close modal and navigate to login page with role parameter
     onClose();
     navigate(`/auth?role=${roleId}`);
   };
@@ -61,42 +63,42 @@ const LoginModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50  backdrop-blur-md flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
+        initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        className="bg-secondary rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-hidden"
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="bg-white rounded-xl shadow-2xl w-full max-w-md"
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <div className="flex items-center space-x-3">
+        <div className="flex items-center justify-between p-4 md:p-5 border-b border-gray-200">
+          <div className="flex items-center gap-3">
             <div className="bg-green-600 text-white p-2 rounded-lg">
-              <FaSignInAlt className="text-xl" />
+              <FaSignInAlt className="text-lg" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">Welcome Back</h2>
-              <p className="text-sm text-gray-600">Choose your role to continue</p>
+              <h2 className="text-lg md:text-xl font-bold text-gray-900">Welcome Back</h2>
+              <p className="text-xs md:text-sm text-gray-600">Choose your role to continue</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
+            className="text-gray-400 hover:text-gray-600 transition-colors p-1"
           >
-            <FaTimes className="text-xl" />
+            <FiX className="text-lg" />
           </button>
         </div>
 
         {/* Role Selection */}
-        <div className="p-6">
+        <div className="p-4 md:p-5">
           <AnimatePresence mode="wait">
             {!selectedRole ? (
               <motion.div
                 key="role-selection"
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="space-y-4"
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-3"
               >
                 {roles.map((role) => (
                   <motion.button
@@ -104,20 +106,20 @@ const LoginModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => handleRoleSelect(role.id)}
-                    className={`w-full flex items-center space-x-4 p-4 text-left text-white rounded-xl shadow-md transition-all duration-200 ${role.color}`}
+                    className={`w-full flex items-center gap-3 p-3 md:p-4 text-left text-white rounded-lg shadow-md transition-all ${role.color}`}
                   >
                     <div className="flex-shrink-0">
                       {role.icon}
                     </div>
                     <div className="flex-1">
-                      <div className="font-semibold text-lg">
+                      <div className="font-semibold text-sm md:text-base">
                         {role.label}
                       </div>
-                      <div className="text-sm text-white/90 font-light">
+                      <div className="text-xs text-white/90">
                         {role.description}
                       </div>
                     </div>
-                    <FaArrowRight className="flex-shrink-0 text-white/80" />
+                    <FiArrowRight className="flex-shrink-0 text-white/80 text-sm" />
                   </motion.button>
                 ))}
               </motion.div>
@@ -125,15 +127,15 @@ const LoginModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
           </AnimatePresence>
 
           {/* Footer */}
-          <div className="mt-6 pt-4 border-t border-gray-200">
-            <p className="text-center text-gray-600 text-sm">
+          <div className="mt-4 pt-3 border-t border-gray-200">
+            <p className="text-center text-gray-600 text-xs md:text-sm">
               Don't have an account?{" "}
               <button
                 onClick={() => {
                   onClose();
                   navigate("/apply");
                 }}
-                className="text-green-600 hover:text-green-700 font-semibold transition-colors duration-200"
+                className="text-green-600 hover:text-green-700 font-semibold transition-colors"
               >
                 Apply to become a mentee
               </button>
@@ -149,7 +151,7 @@ const Landing = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
-  const [limit, setLimit] = useState(4);
+  const [limit, setLimit] = useState(5);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const navigate = useNavigate();
 
@@ -215,6 +217,8 @@ const Landing = () => {
   // Slice events based on limit
   const displayedEvents = events.slice(0, limit);
 
+  
+
   return (
     <main className="relative">
       {/* Login Modal */}
@@ -241,238 +245,405 @@ const Landing = () => {
       </section>
 
       {/* ===== Events Section ===== */}
-      <section className="py-16 md:py-24 bg-green-50 relative">
-        <div className="wrapper">
-          <div className="flex justify-between items-center">
-            <h2 className="subHeading" style={{ color: DedanGreen }}>Upcoming Events</h2>
+      <section id="events-section" className="py-12 md:py-16 bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 px-4 md:px-8">
+        <div className="max-w-7xl mx-auto">
+          {/* Section Header */}
+          <div className="flex items-center justify-between mb-6 pb-3 border-b border-gray-200">
+            <div className="flex justify-center items-center  flex-col w-full text-start">
+              <h2 className="text-xl md:text-2xl font-bold text-green-800 mb-0.5">
+                Upcoming Events
+              </h2>
+              <p className="text-sm text-gray-600">
+                Workshops, seminars, and networking opportunities
+              </p>
+            </div>
             {events.length > limit && (
               <button
                 onClick={() => setLimit(events.length)}
-                className="text-green-700 font-medium hover:underline flex items-center gap-1"
+                className="text-xs font-semibold text-green-800 hover:text-green-900 flex items-center gap-1.5"
               >
-                View More <FaArrowRight />
+                View All ({events.length})
+                <FiArrowRight className="w-3 h-3" />
               </button>
             )}
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
+          {/* Events Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {displayedEvents.map((event) => (
               <div
                 key={event.id}
-                className="bg-white rounded-xl shadow-lg p-6 flex flex-col h-full hover:shadow-xl transition-all duration-300 border border-green-100"
+                className="bg-green-50 border border-gray-200 rounded-lg p-4 hover:border-green-800 hover:shadow-md transition-all duration-200 cursor-pointer group"
+                onClick={() => setSelectedEvent(event)}
               >
-                <div className="flex items-start gap-4 mb-4">
-                  <div className="bg-green-100 p-3 rounded-full" style={{ color: DedanGreen }}>
-                    <FaCalendarAlt className="text-2xl" />
+                {/* Event Header */}
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="bg-green-800 text-white p-2 rounded">
+                      <FiCalendar className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-green-800">
+                        {new Date(event.date).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric'
+                        })}
+                      </div>
+                      <div className="text-xs italic font-extralight text-dark">
+                        {formatTime(event.timeFrom)} - {formatTime(event.timeTo)}
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-xl font-bold mb-1" style={{ color: DedanGreen }}>
-                      {event.title}
-                    </h3>
-                    <p className="text-sm text-gray-500 mb-2">
-                      {event.date} • {event.location}
-                    </p>
-                  </div>
+                  <span className="px-2 py-0.5 bg-gray-100 text-green-800 text-sm font-semibold rounded flex-shrink-0">
+                    <FiTag className="w-3 h-3 inline mr-1" />
+                    {event.category || "General"}
+                  </span>
                 </div>
-                <p className="text-gray-600 text-base mb-6 flex-grow">
+
+                {/* Event Title */}
+                <h3 className="text-lg font-semibold text-dark mb-2 line-clamp-2 group-hover:text-green-800 transition-colors leading-tight">
+                  {event.title}
+                </h3>
+
+                {/* Event Description */}
+                <p className="text-sm text-gray-600 line-clamp-2 mb-3 leading-relaxed">
                   {event.description}
                 </p>
-                <button
-                  onClick={() => setSelectedEvent(event)}
-                  className="flex items-center font-medium group"
-                  style={{ color: DedanGreen }}
-                >
-                  Learn more
-                  <FaArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+
+                {/* Event Location */}
+                <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-3 pb-3 border-b border-gray-100">
+                  <FiMapPin className="w-3.5 h-3.5 text-green-800 flex-shrink-0" />
+                  <span className="truncate">{event.location}</span>
+                </div>
+
+                {/* Action Button */}
+                <button className="w-fit px-2 flex items-center justify-center gap-2 py-2 text-sm font-semibold text-green-800 hover:text-green-900 transition-colors group cursor-pointer hover:bg-dark/20 rounded ">
+                  View Details
+                  <FiArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                 </button>
               </div>
             ))}
           </div>
-        </div>
-      </section>
 
-      {/* ===== Modal for Event Details ===== */}
-      {selectedEvent && (
-        <Modal
-          isOpen={!!selectedEvent}
-          onClose={() => setSelectedEvent(null)}
-          title={selectedEvent.title}
-          message={
-            <div className="space-y-3">
-              <p>{selectedEvent.description}</p>
-              <p>
-                <strong>Date:</strong>{" "}
-                {new Date(selectedEvent.date).toLocaleDateString()}
-              </p>
-              <p>
-                <strong>Time:</strong> {selectedEvent.timeFrom} -{" "}
-                {selectedEvent.timeTo}
-              </p>
-              <p>
-                <strong>Location:</strong> {selectedEvent.location}
-              </p>
-              <p>
-                <strong>Objective:</strong> {selectedEvent.objective}
-              </p>
-              <p>
-                <strong>Details:</strong> {selectedEvent.details}
-              </p>
+          {/* View All Button */}
+          {events.length > limit && (
+            <div className="text-center mt-6">
+              <button
+                onClick={() => setLimit(events.length)}
+                className="inline-flex items-center gap-2 px-6 py-2.5 bg-green-800 text-white text-sm font-semibold rounded-lg hover:bg-green-900 transition-colors shadow-sm"
+              >
+                View All {events.length} Events
+                <FiArrowRight className="w-4 h-4" />
+              </button>
             </div>
-          }
-        >
-          <button
-            onClick={() => {
-              setSelectedEvent(null);
-              navigate(`/apply/${selectedEvent.id}`);
-            }}
-            style={{ backgroundColor: DedanGreen }}
-            className="hover:bg-green-700 text-white px-6 py-2 rounded-full font-medium transition-all shadow-md hover:shadow-lg"
-          >
-            Apply
-          </button>
-        </Modal>
-      )}
+          )}
+
+          {/* Empty State */}
+          {displayedEvents.length === 0 && (
+            <div className="text-center py-12 border border-gray-200 rounded-lg">
+              <FiCalendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+              <p className="text-sm font-semibold text-gray-600 mb-1">No upcoming events</p>
+              <p className="text-xs text-gray-500">Check back soon for exciting opportunities!</p>
+            </div>
+          )}
+        </div>
+      </section>      {/* ===== Modal for Event Details ===== */}
+      <AnimatePresence>
+        {selectedEvent && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.96 }}
+              transition={{ duration: 0.2 }}
+              className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[85vh] overflow-hidden"
+            >
+              {/* Modal Header */}
+              <div className="relative bg-green-900 text-white p-5">
+                <button
+                  onClick={() => setSelectedEvent(null)}
+                  className="absolute top-4 right-4 p-1.5 hover:bg-white/20 rounded-full transition-colors"
+                >
+                  <FiX className="w-5 h-5" />
+                </button>
+
+                <div className="flex items-start gap-4 pr-8">
+                  <div className="bg-white/20 p-3 rounded-lg flex-shrink-0">
+                    <FiCalendar className="w-6 h-6" />
+                  </div>
+                  <div className="flex-1">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-white/90 text-green-800 text-xs font-bold rounded mb-2">
+                      <FiTag className="w-3 h-3" />
+                      {selectedEvent.category || "General Event"}
+                    </span>
+                    <h2 className="text-xl font-bold leading-tight mb-1">
+                      {selectedEvent.title}
+                    </h2>
+                    <p className="text-xs italic font-extralight  text-secondary leading-snug">
+                      {selectedEvent.description}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Content */}
+              <div className="p-5 overflow-y-auto max-h-[calc(85vh-220px)]">
+                {/* Quick Info */}
+                <div className="grid grid-cols-3 gap-3 mb-5 pb-5 border-b border-green-200/60">
+                  <div className="text-center ">
+                    <FiCalendar className="w-4 h-4 text-green-800 mx-auto mb-1.5" />
+                    <div className="text-xs text-gray-500 mb-1 font-semibold">Date</div>
+                    <div className="text-sm font-bold text-black">
+                      {new Date(selectedEvent.date).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                      })}
+                    </div>
+                  </div>
+                  <div className="text-center border-x border-gray-200">
+                    <FiClock className="w-4 h-4 text-green-800 mx-auto mb-1.5" />
+                    <div className="text-xs text-gray-500 mb-1 font-semibold">Time</div>
+                    <div className="text-sm font-semibold text-black">
+                      {formatTime(selectedEvent.timeFrom)} - {formatTime(selectedEvent.timeTo)}
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <FiMapPin className="w-4 h-4 text-green-800 mx-auto mb-1.5" />
+                    <div className="text-xs text-gray-500 mb-1 font-semibold">Location</div>
+                    <div className="text-sm font-bold text-black line-clamp-1">
+                      {selectedEvent.location}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Event Objective */}
+                <div className="mb-4">
+                  <h3 className="text-sm font-bold text-green-800 mb-2 flex items-center gap-2">
+                    <span className="w-1 h-4 bg-green-800 rounded"></span>
+                    Objective
+                  </h3>
+                  <p className="text-sm text-gray-700 leading-relaxed">
+                    {selectedEvent.objective}
+                  </p>
+                </div>
+
+                {/* Event Details */}
+                <div className="mb-4">
+                  <h3 className="text-sm font-bold text-green-800 mb-2 flex items-center gap-2">
+                    <span className="w-1 h-4 bg-green-800 rounded"></span>
+                    Details
+                  </h3>
+                  <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+                    {selectedEvent.details}
+                  </p>
+                </div>
+
+                {/* Organizer Info */}
+                {selectedEvent.createdBy && (
+                  <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                    <p className="text-xs text-gray-600">
+                      <span className="font-bold text-green-800">Organized by:</span>{" "}
+                      <span className="font-semibold text-black">{selectedEvent.createdBy.fullName}</span>
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer */}
+              <div className="bg-gray-50 px-5 py-4 border-t border-gray-200 flex gap-3 justify-end">
+                <button
+                  onClick={() => setSelectedEvent(null)}
+                  className="px-5 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-colors inline-flex items-center gap-2 cursor-pointer"
+                >
+                  <FiX className="w-4 h-4" />
+                  Close
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedEvent(null);
+                    navigate(`/apply/${selectedEvent.id}`);
+                  }}
+                  className="px-5 py-2 bg-green-800 text-white rounded-lg text-sm font-semibold hover:bg-green-900 transition-colors inline-flex items-center gap-2 cursor-pointer"
+                >
+                  Apply Now
+                  <FiArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* ===== Mentorship Section ===== */}
-      <section
-        className="relative py-24 text-white overflow-hidden"
-        style={{ backgroundColor: DedanGreen }}
-      >
-        <div className="wrapper grid md:grid-cols-2 items-center gap-10">
-          <motion.div
-            initial={{ opacity: 0, x: -40 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              The Mentorship Programme
-            </h2>
-            <p className="max-w-xl text-emerald-100 mb-8 leading-relaxed text-lg">
-              Become part of a transformative journey where knowledge meets
-              purpose. Learn from industry leaders, receive one-on-one guidance,
-              and inspire the next generation of innovators.
-            </p>
+      <section className="relative py-12 md:py-20 text-white overflow-hidden bg-gradient-to-br from-green-800 to-emerald-900">
 
-            <div className="flex flex-col sm:flex-row gap-4">
-              <button
-                onClick={() => navigate("/auth?role=mentor")}
-                className="bg-white text-[#0f5132] font-semibold px-8 py-3 rounded-full hover:bg-emerald-100 transition-all"
-              >
-                I am a Mentor
-              </button>
-              <button
-                onClick={() => setShowLoginModal(true)}
-                className="bg-transparent border border-white text-white font-semibold px-8 py-3 rounded-full hover:bg-white hover:text-[#0f5132] transition-all"
-              >
-                Sign In as Student
-              </button>
-            </div>
-          </motion.div>
+        <div className="relative max-w-7xl mx-auto px-4 md:px-8">
+          <div className="grid md:grid-cols-2 items-center gap-8 md:gap-12">
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <div className="inline-block px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full mb-3 md:mb-4">
+                <span className="text-xs md:text-sm font-semibold text-white">
+                  🎓 Transform Your Future
+                </span>
+              </div>
 
-          <motion.div
-            initial={{ opacity: 0, x: 40 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <div className="relative rounded-2xl overflow-hidden shadow-lg">
-              <img
-                src={mentor_illustration}
-                alt="Mentorship"
-                className="w-full h-[400px] object-cover"
-              />
-              <div className="absolute inset-0 bg-black/30" />
-            </div>
-          </motion.div>
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-3 md:mb-5">
+                The Mentorship Programme
+              </h2>
+
+              <p className="max-w-xl text-sm md:text-base text-emerald-100 mb-6 md:mb-8 leading-relaxed">
+                Become part of a transformative journey where knowledge meets
+                purpose. Learn from industry leaders, receive one-on-one guidance,
+                and inspire the next generation of innovators.
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={() => navigate("/auth?role=mentor")}
+                  className="px-5 md:px-6 py-2.5 md:py-3 bg-white text-green-800 font-semibold text-sm md:text-base rounded-lg hover:bg-emerald-50 transition-all shadow-lg hover:shadow-xl"
+                >
+                  I am a Mentor
+                </button>
+                <button
+                  onClick={() => setShowLoginModal(true)}
+                  className="px-5 md:px-6 py-2.5 md:py-3 bg-transparent border-2 border-white text-white font-semibold text-sm md:text-base rounded-lg hover:bg-white hover:text-green-800 transition-all"
+                >
+                  Sign In as Student
+                </button>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="relative"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-400 to-green-600 rounded-2xl blur-2xl opacity-30"></div>
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl">
+                <img
+                  src={mentorIllustration}
+                  alt="Mentorship"
+                  className="w-full h-64 md:h-80 lg:h-96 object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+              </div>
+            </motion.div>
+          </div>
         </div>
       </section>
 
       {/* ===== Testimonials Carousel ===== */}
-      <section className="py-20 bg-green-50 text-center relative">
-        <div className="wrapper">
-          <h2 className="subHeading mb-12" style={{ color: DedanGreen }}>
-            What Our Learners Say
-          </h2>
+      <section className="py-12 md:py-20 bg-gradient-to-br from-green-50 to-emerald-50">
+        <div className="max-w-7xl mx-auto px-4 md:px-8">
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-green-700 mb-2">
+              What Our Learners Say
+            </h2>
+            <p className="text-sm md:text-base text-gray-600">
+              Success stories from our community
+            </p>
+          </div>
 
-          <div className="relative max-w-3xl mx-auto overflow-hidden">
+          <div className="relative max-w-3xl mx-auto">
             <motion.div
               key={currentTestimonial}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="bg-white rounded-xl shadow-lg p-8 mx-4"
+              transition={{ duration: 0.5 }}
+              className="bg-white rounded-xl shadow-lg p-6 md:p-8 mx-4"
             >
-              <p className="text-gray-600 italic mb-6 text-lg">
-                "{testimonials[currentTestimonial].message}"
-              </p>
-              <div className="flex justify-center mb-3">
+              <div className="flex justify-center mb-4">
                 {Array.from({ length: testimonials[currentTestimonial].rating }).map(
                   (_, i) => (
-                    <FaStar key={i} className="text-yellow-400 mx-1" />
+                    <FaStar key={i} className="text-yellow-400 text-sm md:text-base mx-0.5" />
                   )
                 )}
               </div>
-              <p className="font-semibold" style={{ color: DedanGreen }}>
-                {testimonials[currentTestimonial].name}
+
+              <p className="text-gray-700 italic mb-4 md:mb-6 text-sm md:text-base lg:text-lg text-center leading-relaxed">
+                "{testimonials[currentTestimonial].message}"
+              </p>
+
+              <p className="font-semibold text-green-700 text-sm md:text-base text-center">
+                — {testimonials[currentTestimonial].name}
               </p>
             </motion.div>
 
             <button
               onClick={prevSlide}
-              className="absolute left-0 top-1/2 -translate-y-1/2 bg-white shadow-md rounded-full p-3 hover:bg-green-100 transition-colors"
-              style={{ color: DedanGreen }}
+              className="absolute left-0 top-1/2 -translate-y-1/2 bg-white shadow-md rounded-full p-2 md:p-3 hover:bg-green-50 transition-colors text-green-700"
             >
-              <FaChevronLeft />
+              <FaChevronLeft className="text-sm md:text-base" />
             </button>
             <button
               onClick={nextSlide}
-              className="absolute right-0 top-1/2 -translate-y-1/2 bg-white shadow-md rounded-full p-3 hover:bg-green-100 transition-colors"
-              style={{ color: DedanGreen }}
+              className="absolute right-0 top-1/2 -translate-y-1/2 bg-white shadow-md rounded-full p-2 md:p-3 hover:bg-green-50 transition-colors text-green-700"
             >
-              <FaChevronRight />
+              <FaChevronRight className="text-sm md:text-base" />
             </button>
+
+            {/* Dots Indicator */}
+            <div className="flex justify-center gap-2 mt-6">
+              {testimonials.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentTestimonial(index)}
+                  className={`w-2 h-2 rounded-full transition-all ${index === currentTestimonial
+                    ? "bg-green-700 w-6"
+                    : "bg-gray-300 hover:bg-gray-400"
+                    }`}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
       {/* ===== Footer ===== */}
-      <footer
-        className="text-gray-100 py-16 mt-10"
-        style={{ backgroundColor: DedanGreen }}
-      >
-        <div className="wrapper grid md:grid-cols-3 gap-10 text-sm">
-          <div>
-            <h3 className="font-bold text-white text-lg mb-4">Students</h3>
-            <ul className="space-y-2 text-emerald-100">
-              <li>Learning Paths</li>
-              <li>Join Events</li>
-              <li>Community Challenges</li>
-              <li>Resources & Materials</li>
-            </ul>
+      <footer className="bg-gradient-to-br from-green-800 to-emerald-900 text-gray-100 py-12 md:py-16">
+        <div className="max-w-7xl mx-auto px-4 md:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
+            <div>
+              <h3 className="font-bold text-white text-base md:text-lg mb-3 md:mb-4">Students</h3>
+              <ul className="space-y-2 text-xs md:text-sm text-emerald-100">
+                <li className="hover:text-white transition-colors cursor-pointer">Learning Paths</li>
+                <li className="hover:text-white transition-colors cursor-pointer">Join Events</li>
+                <li className="hover:text-white transition-colors cursor-pointer">Community Challenges</li>
+                <li className="hover:text-white transition-colors cursor-pointer">Resources & Materials</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-bold text-white text-base md:text-lg mb-3 md:mb-4">Events</h3>
+              <ul className="space-y-2 text-xs md:text-sm text-emerald-100">
+                <li className="hover:text-white transition-colors cursor-pointer">Upcoming Events</li>
+                <li className="hover:text-white transition-colors cursor-pointer">Workshops</li>
+                <li className="hover:text-white transition-colors cursor-pointer">Seminars</li>
+                <li className="hover:text-white transition-colors cursor-pointer">Hackathons</li>
+                <li className="hover:text-white transition-colors cursor-pointer">Training</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-bold text-white text-base md:text-lg mb-3 md:mb-4">Mentorship</h3>
+              <ul className="space-y-2 text-xs md:text-sm text-emerald-100">
+                <li className="hover:text-white transition-colors cursor-pointer">Become a Mentor</li>
+                <li className="hover:text-white transition-colors cursor-pointer">Find a Mentor</li>
+                <li className="hover:text-white transition-colors cursor-pointer">Guidelines</li>
+                <li className="hover:text-white transition-colors cursor-pointer">Success Stories</li>
+              </ul>
+            </div>
           </div>
-          <div>
-            <h3 className="font-bold text-white text-lg mb-4">Events</h3>
-            <ul className="space-y-2 text-emerald-100">
-              <li>Upcoming Events</li>
-              <li>Workshops</li>
-              <li>Seminars</li>
-              <li>Hackathons</li>
-              <li>Training</li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-bold text-white text-lg mb-4">Mentorship</h3>
-            <ul className="space-y-2 text-emerald-100">
-              <li>Become a Mentor</li>
-              <li>Find a Mentor</li>
-              <li>Guidelines</li>
-              <li>Success Stories</li>
-            </ul>
-          </div>
-        </div>
 
-        <div className="mt-10 border-t border-emerald-800 pt-6 text-center text-emerald-200 text-sm">
-          © {new Date().getFullYear()} Dedan Kimathi Startup & Incubation Centre
-          — Empowering Innovators.
+          <div className="mt-8 md:mt-10 pt-6 border-t border-emerald-800 text-center text-emerald-200 text-xs md:text-sm">
+            <p>© {new Date().getFullYear()} Dedan Kimathi Startup & Incubation Centre — Empowering Innovators.</p>
+          </div>
         </div>
       </footer>
     </main>

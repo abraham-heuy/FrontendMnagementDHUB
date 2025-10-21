@@ -41,6 +41,7 @@ const App = () => {
         <Route path="/" element={<Landing />} />
         <Route path="/about" element={<About />} />
         <Route path="/apply/:eventId" element={<Application />} />
+        <Route path="/apply" element={<Application />} />
         <Route path="/auth/*" element={<Auth />} />
         <Route path="/admin/login" element={<LoginPage />} />
         <Route path="/mentor-login" element={<MentorLogin />} />
