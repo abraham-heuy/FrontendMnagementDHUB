@@ -122,3 +122,4 @@ export const dashboardService = {
     if (!res.ok) throw new Error("Failed to mark notification as read");
   },
 };
+

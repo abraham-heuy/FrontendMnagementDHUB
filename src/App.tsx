@@ -43,7 +43,7 @@ const App = () => {
         <Route path="/apply/:eventId" element={<Application />} />
         <Route path="/auth/*" element={<Auth />} />
         <Route path="/admin/login" element={<LoginPage />} />
-        <Route path ="/mentor-login" element ={<MentorLogin/>}/>
+        <Route path="/mentor-login" element={<MentorLogin />} />
 
         {/* Admin routes (protected) */}
         <Route element={<ProtectedRoute requiredRole="admin" />}>
@@ -78,14 +78,14 @@ const App = () => {
 
         {/* Mentor routes */}
         <Route element={<ProtectedRoute requiredRole="mentor" />}>
-           <Route path="dashboard/mentor/*" element={<MentorPage />}>
-              <Route index element={<Navigate to="home" replace/>}/>
-              <Route path="home" element={<MentorHome />} />
-              <Route path="notifications" element={<MentorNotifications />}/>
-              <Route path="profile" element={<MentorProfileComponent />}/>
-              <Route path="logout" element={<LogoutMentor />}/>
-              <Route path="*" element={<NotFound />} />
-           </Route>
+          <Route path="dashboard/mentor/*" element={<MentorPage />}>
+            <Route index element={<Navigate to="home" replace />} />
+            <Route path="home" element={<MentorHome />} />
+            <Route path="notifications" element={<MentorNotifications />} />
+            <Route path="profile" element={<MentorProfileComponent />} />
+            <Route path="logout" element={<LogoutMentor />} />
+            <Route path="*" element={<NotFound />} />
+          </Route>
         </Route>
       </Routes>
 
