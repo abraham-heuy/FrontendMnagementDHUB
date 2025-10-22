@@ -1,28 +1,27 @@
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
 import ReviewField from "../components/ReviewFiel";
 import { businessSections } from "../data/data";
 import Navigation from "../components/Navigation";
 import Modal from "../components/Modal";
 import modalImage from "../assets/images/Logo.png";
-import { applyToEvent } from "../lib/services/applicationService";
+import { applyForPitching } from "../lib/services/applicationService";
 import InputField from "../components/InputField";
 import { FaUserFriends, FaTrash, FaPlus, FaCheckCircle, FaExclamationTriangle } from "react-icons/fa";
 
 const Application = () => {
-  const { eventId } = useParams(); // ✅ Get eventId from the URL
-  const navigate = useNavigate();
 
   const [form, setForm] = useState({
-    regNo: "",
-    name: "",
+    first_name: "",
+    last_name: "",
+    surname: "",
     email: "",
     phone: "",
+    regNo: "",
     businessIdea: "",
     problemStatement: "",
     solution: "",
     targetMarket: "",
-    revenueModel: "",
+    revenueModel: ""
   });
 
   const [teamMembers, setTeamMembers] = useState<string[]>([""]);
@@ -59,16 +58,16 @@ const Application = () => {
 
     switch (step) {
       case 0: // Personal Details
-        if (!form.name.trim()) {
-          setValidationError("Full name is required");
+        if (!form.first_name.trim()) {
+          setValidationError("First name is required");
+          return false;
+        }
+        if (!form.last_name.trim()) {
+          setValidationError("Last name is required");
           return false;
         }
         if (!form.email.trim()) {
           setValidationError("Email is required");
-          return false;
-        }
-        if (!form.regNo.trim()) {
-          setValidationError("Registration number is required");
           return false;
         }
         if (!form.phone.trim()) {
@@ -113,22 +112,28 @@ const Application = () => {
   };
 
   const handleSubmit = async () => {
-    if (!eventId) {
-      alert("Invalid or missing event ID. Please go back and try again.");
-      navigate("/");
-      return;
-    }
-
     // Filter out empty team members
     const filteredTeamMembers = teamMembers.filter(member => member.trim() !== "");
 
     try {
+      // Prepare data for backend - match backend API structure
       const submissionData = {
-        ...form,
-        teamMembers: filteredTeamMembers.join(", "), // Send as comma-separated string
+        first_name: form.first_name,
+        last_name: form.last_name,
+        surname: form.surname,
+        email: form.email,
+        phone: form.phone,
+        regNo: form.regNo,
+        businessIdea: form.businessIdea,
+        problemStatement: form.problemStatement,
+        solution: form.solution,
+        targetMarket: form.targetMarket || "Not specified",
+        revenueModel: form.revenueModel || "Not specified",
+        teamMembers: filteredTeamMembers, // Send as array
       };
 
-      const response = await applyToEvent(eventId, submissionData);
+      // Use the pitching application service
+      const response = await applyForPitching(submissionData);
       console.log("✅ Application submitted:", response);
       setShowConfirmDialog(false);
       setIsModalOpen(true);
@@ -218,12 +223,27 @@ const Application = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <InputField
-                label="Full Name"
-                value={form.name}
+                label="First Name"
+                value={form.first_name}
                 type="text"
-                placeholder="John Doe"
-                onChange={(e) => handleChange("name", e.target.value)}
+                placeholder="John"
+                onChange={(e) => handleChange("first_name", e.target.value)}
                 required
+              />
+              <InputField
+                label="Last Name"
+                value={form.last_name}
+                type="text"
+                placeholder="Doe"
+                onChange={(e) => handleChange("last_name", e.target.value)}
+                required
+              />
+              <InputField
+                label="Surname (Optional)"
+                value={form.surname}
+                type="text"
+                placeholder="Smith"
+                onChange={(e) => handleChange("surname", e.target.value)}
               />
               <InputField
                 label="Email"
@@ -378,7 +398,9 @@ const Application = () => {
                 Personal Details
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <ReviewField label="Full Name" value={form.name} />
+                <ReviewField label="First Name" value={form.first_name} />
+                <ReviewField label="Last Name" value={form.last_name} />
+                {form.surname && <ReviewField label="Surname" value={form.surname} />}
                 <ReviewField label="Email" value={form.email} />
                 <ReviewField label="Registration No" value={form.regNo} />
                 <ReviewField label="Phone" value={form.phone} />

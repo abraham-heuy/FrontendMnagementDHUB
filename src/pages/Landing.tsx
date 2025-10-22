@@ -22,7 +22,7 @@ import {
 import { getEvents, getEventsByCategory } from "../lib/services/eventService";
 import type { Event } from "../lib/types/events";
 import { motion, AnimatePresence } from "framer-motion";
-import { mentorIllustration } from "../constants/Index";
+import { heroImg, loginBanner, mentorIllustration, galleryImages } from "../constants/Index";
 import { formatTime } from "../constants/Formats";
 
 // Login Modal Component
@@ -153,6 +153,7 @@ const Landing = () => {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [limit, setLimit] = useState(5);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [selectedGalleryImage, setSelectedGalleryImage] = useState<typeof galleryImages[0] | null>(null);
   const navigate = useNavigate();
 
   const testimonials = [
@@ -217,7 +218,7 @@ const Landing = () => {
   // Slice events based on limit
   const displayedEvents = events.slice(0, limit);
 
-  
+
 
   return (
     <main className="relative">
@@ -475,6 +476,252 @@ const Landing = () => {
           </div>
         )}
       </AnimatePresence>
+
+      {/* ====== Gallery Section ====== */}
+
+      <section className="relative flex items-center py-16 md:py-20">
+        {/* Background Decorative Elements */}
+        <div className="absolute inset-0 bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 pointer-events-none"></div>
+
+        <div className="relative w-full max-w-7xl mx-auto px-4 md:px-8">
+          {/* Section Header */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-12 md:mb-16"
+          >
+            <h2 className="text-2xl md:text-3xl font-bold text-green-900 mb-3">
+              Gallery
+            </h2>
+            <p className="text-sm md:text-base text-green-600 max-w-2xl mx-auto">
+              Capturing moments of innovation, collaboration, and success from our vibrant community
+            </p>
+          </motion.div>
+
+          {/* Infinite Scrolling Gallery Container */}
+          <div className="relative overflow-hidden rounded-xl">
+            {/* Add custom CSS for smooth animation */}
+            <style>{`
+              @keyframes smoothScroll {
+                0% {
+                  transform: translateX(0);
+                }
+                100% {
+                  transform: translateX(-50%);
+                }
+              }
+              
+              .gallery-scroll {
+                animation: smoothScroll 60s linear infinite;
+                will-change: transform;
+              }
+              
+              .gallery-scroll:hover {
+                animation-play-state: paused;
+              }
+              
+              .gallery-card {
+                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+              }
+              
+              .gallery-card:hover {
+                transform: translateY(-8px) scale(1.05);
+                z-index: 20;
+              }
+              
+              .gallery-overlay {
+                backdrop-filter: blur(1px);
+              }
+            `}</style>
+
+            {/* Gradient Overlays for Edge Fade Effect */}
+            <div className="absolute left-0 top-0 bottom-0 w-32 md:w-48 bg-gradient-to-r from-dark/40 via-dark/20 to-transparent z-10 pointer-events-none"></div>
+            <div className="absolute right-0 top-0 bottom-0 w-32 md:w-48 bg-gradient-to-l from-dark/40 via-dark/20 to-transparent z-10 pointer-events-none"></div>
+
+            {/* Scrolling Container */}
+            <div className="flex gallery-scroll gap-4 py-4">
+              {/* First set of images */}
+              {galleryImages.map((image, index) => (
+                <motion.div
+                  key={`first-${image.id}`}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  onClick={() => setSelectedGalleryImage(image)}
+                  className="gallery-card relative flex-shrink-0 w-[240px] md:w-[280px] h-[200px] md:h-[240px] rounded-lg overflow-hidden shadow-md hover:shadow-2xl group bg-gray-100 cursor-pointer"
+                >
+                  <img
+                    src={image.src}
+                    alt={image.title}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+
+                  {/* Overlay with event details - shows on hover */}
+                  <div className="gallery-overlay absolute inset-0 bg-black/0 group-hover:bg-black/80 transition-all duration-400 flex flex-col justify-end p-4 opacity-0 group-hover:opacity-100">
+                    <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-400">
+                      <h3 className="text-white font-bold text-base mb-1.5 leading-tight">
+                        {image.title}
+                      </h3>
+                      <p className="text-white/90 text-xs mb-2 leading-relaxed line-clamp-2">
+                        {image.description}
+                      </p>
+                      <div className="flex items-center gap-3 text-xs text-white/90">
+                        <span className="flex items-center gap-1 bg-white/15 px-2 py-1 rounded-full backdrop-blur-sm">
+                          <FiCalendar className="w-3 h-3" />
+                          {image.date}
+                        </span>
+                        <span className="flex items-center gap-1 bg-white/15 px-2 py-1 rounded-full backdrop-blur-sm">
+                          <FaUserGraduate className="w-3 h-3" />
+                          {image.participants}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bottom Accent Bar */}
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-green-800 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-400 origin-left"></div>
+                </motion.div>
+              ))}
+
+              {/* Duplicate set for seamless loop */}
+              {galleryImages.map((image) => (
+                <motion.div
+                  key={`second-${image.id}`}
+                  onClick={() => setSelectedGalleryImage(image)}
+                  className="gallery-card relative flex-shrink-0 w-[240px] md:w-[280px] h-[200px] md:h-[240px] rounded-lg overflow-hidden shadow-md hover:shadow-2xl group bg-gray-100 cursor-pointer"
+                >
+                  <img
+                    src={image.src}
+                    alt={image.title}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+
+                  {/* Overlay with event details - shows on hover */}
+                  <div className="gallery-overlay absolute inset-0 bg-black/0 group-hover:bg-black/80 transition-all duration-400 flex flex-col justify-end p-4 opacity-0 group-hover:opacity-100">
+                    <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-400">
+                      <h3 className="text-white font-bold text-base mb-1.5 leading-tight">
+                        {image.title}
+                      </h3>
+                      <p className="text-white/90 text-xs mb-2 leading-relaxed line-clamp-2">
+                        {image.description}
+                      </p>
+                      <div className="flex items-center gap-3 text-xs text-white/90">
+                        <span className="flex items-center gap-1 bg-white/15 px-2 py-1 rounded-full backdrop-blur-sm">
+                          <FiCalendar className="w-3 h-3" />
+                          {image.date}
+                        </span>
+                        <span className="flex items-center gap-1 bg-white/15 px-2 py-1 rounded-full backdrop-blur-sm">
+                          <FaUserGraduate className="w-3 h-3" />
+                          {image.participants}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bottom Accent Bar */}
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-green-800 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-400 origin-left"></div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          {/* Bottom Decorative Text */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="text-center mt-12 md:mt-16"
+          >
+            <p className="text-xs md:text-sm text-gray-500 italic">
+              Hover to pause • Click to view full image
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ===== Improved Gallery Lightbox Modal ===== */}
+      <AnimatePresence>
+        {selectedGalleryImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 bg-black/95 backdrop-blur-sm flex items-center justify-center z-50 p-4 md:p-6"
+            onClick={() => setSelectedGalleryImage(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.3, type: "spring", damping: 20 }}
+              className="relative w-full max-w-5xl h-auto max-h-[90vh] flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Close Button */}
+              <button
+                onClick={() => setSelectedGalleryImage(null)}
+                className="absolute -top-12 right-0 text-white hover:text-green-400 transition-colors p-2 rounded-full hover:bg-white/10 z-20"
+                aria-label="Close"
+              >
+                <FiX className="w-7 h-7 md:w-8 md:h-8" />
+              </button>
+
+              {/* Main Content Container */}
+              <div className="bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+                {/* Image Container - Takes 60% of modal height */}
+                <div className="relative bg-gray-900 flex items-center justify-center" style={{ height: '55vh', minHeight: '300px', maxHeight: '55vh' }}>
+                  <img
+                    src={selectedGalleryImage.src}
+                    alt={selectedGalleryImage.title}
+                    className="w-full h-full object-contain"
+                    style={{ maxHeight: '100%', maxWidth: '100%' }}
+                  />
+
+                  {/* Subtle overlay for better contrast */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
+                </div>
+
+                {/* Details Panel - Compact bottom section */}
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-t-2 border-green-200">
+                  <div className="p-4 md:p-6">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                      {/* Text Content */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-green-900 mb-1.5 truncate">
+                          {selectedGalleryImage.title}
+                        </h3>
+                        <p className="text-green-700 text-xs sm:text-sm md:text-base leading-relaxed line-clamp-2">
+                          {selectedGalleryImage.description}
+                        </p>
+                      </div>
+
+                      {/* Meta Information */}
+                      <div className="flex items-center gap-3 sm:gap-4 flex-shrink-0 text-xs sm:text-sm">
+                        <span className="flex items-center gap-1.5 text-green-800 font-semibold bg-white/60 px-3 py-1.5 rounded-full">
+                          <FiCalendar className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                          <span className="hidden sm:inline">{selectedGalleryImage.date}</span>
+                          <span className="sm:hidden">{selectedGalleryImage.date.split(',')[0]}</span>
+                        </span>
+                        <span className="flex items-center gap-1.5 text-green-800 font-semibold bg-white/60 px-3 py-1.5 rounded-full">
+                          <FaUserGraduate className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                          {selectedGalleryImage.participants}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      
 
       {/* ===== Mentorship Section ===== */}
       <section className="relative py-12 md:py-20 text-white overflow-hidden bg-gradient-to-br from-green-800 to-emerald-900">

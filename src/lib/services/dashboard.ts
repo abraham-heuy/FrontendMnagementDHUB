@@ -1,6 +1,4 @@
 // Dashboard service for comprehensive student data
-import type { DashboardData, DashboardStats } from '../types/dashboardTypes';
-
 const apiURL = import.meta.env.VITE_API_URL || "http://localhost:3000/api/v1";
 
 export const getDashboardStats = {
