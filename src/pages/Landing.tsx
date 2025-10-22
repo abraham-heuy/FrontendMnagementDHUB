@@ -481,16 +481,16 @@ const Landing = () => {
 
       <section className="relative flex items-center py-16 md:py-20">
         {/* Background Decorative Elements */}
-        <div className="absolute inset-0 bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 pointer-events-none"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-green-50 via-emerald-50 to-teal-100 pointer-events-none"></div>
 
-        <div className="relative w-full max-w-7xl mx-auto px-4 md:px-8">
+        <div className="relative w-full max-w-7xl mx-auto px-4 md:px-8 shadow-sm min-h-[75vh]">
           {/* Section Header */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="text-center mb-12 md:mb-16"
+            className="text-center border-b border-green-800/20 py-2 mb-12 md:mb-16"
           >
             <h2 className="text-2xl md:text-3xl font-bold text-green-900 mb-3">
               Gallery
@@ -651,7 +651,7 @@ const Landing = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="fixed inset-0 bg-black/95 backdrop-blur-sm flex items-center justify-center z-50 p-4 md:p-6"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 md:p-6"
             onClick={() => setSelectedGalleryImage(null)}
           >
             <motion.div
@@ -674,11 +674,11 @@ const Landing = () => {
               {/* Main Content Container */}
               <div className="bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
                 {/* Image Container - Takes 60% of modal height */}
-                <div className="relative bg-gray-900 flex items-center justify-center" style={{ height: '55vh', minHeight: '300px', maxHeight: '55vh' }}>
+                <div className="relative bg-gray-900 w-full  p-3  flex items-center justify-center" style={{ height: '55vh', minHeight: '200px', maxHeight: '55vh' }}>
                   <img
                     src={selectedGalleryImage.src}
                     alt={selectedGalleryImage.title}
-                    className="w-full h-full object-contain"
+                    className="w-full h-full object-contain  my-2"
                     style={{ maxHeight: '100%', maxWidth: '100%' }}
                   />
 
@@ -721,7 +721,7 @@ const Landing = () => {
         )}
       </AnimatePresence>
 
-      
+
 
       {/* ===== Mentorship Section ===== */}
       <section className="relative py-12 md:py-20 text-white overflow-hidden bg-gradient-to-br from-green-800 to-emerald-900">
