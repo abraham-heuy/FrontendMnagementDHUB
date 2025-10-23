@@ -1,7 +1,6 @@
 import React from "react";
 import {
   FiBell,
-  FiBookOpen,
   FiCalendar,
   FiLayers,
   FiLogOut,
@@ -18,7 +17,6 @@ export type DashboardTab =
   | "progress"
   | "events"
   | "mentors"
-  | "resources"
   | "notifications"
   | "profile";
 
@@ -37,10 +35,9 @@ const menuGroups: {
       ]
     },
     {
-      title: "Resources",
+      title: "Community",
       items: [
         { key: "mentors", label: "Mentors", icon: <FiUsers />, path: "/dashboard/student/mentors" },
-        { key: "resources", label: "Resources", icon: <FiBookOpen />, path: "/dashboard/student/resources" },
         { key: "notifications", label: "Notifications", icon: <FiBell />, path: "/dashboard/student/notifications" }
       ]
     }

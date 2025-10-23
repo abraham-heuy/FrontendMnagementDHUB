@@ -6,6 +6,10 @@ import loginBanner from "../assets/images/Banner.png"
 import mentorIllustration from "../assets/images/mentor_illustrator.jpg";
 import mentorIllustration2 from "../assets/images/mentor_illustration.png";
 import successImg from "../assets/images/success.png";
+import image1 from "../assets/images/image1.png";
+import image2 from "../assets/images/image2.jpg";
+import image3 from "../assets/images/image3.jpg";
+import image4 from "../assets/images/image4.jpg";
 
 
 export {
@@ -14,14 +18,18 @@ export {
   loginBanner,
   mentorIllustration,
   mentorIllustration2,
-  successImg
+  successImg,
+  image1,
+  image2,
+  image3,
+  image4
 };
 
 // Gallery Images with Event Details
 export const galleryImages = [
   {
     id: 1,
-    src: loginBanner,
+    src: image1,
     title: "Startup Bootcamp 2024",
     description: "Intensive 3-day workshop on entrepreneurship fundamentals",
     date: "March 15, 2024",
@@ -29,7 +37,7 @@ export const galleryImages = [
   },
   {
     id: 2,
-    src: mentorIllustration,
+    src: image2,
     title: "Mentorship Launch Event",
     description: "Official launch of our mentorship program connecting students with industry experts",
     date: "February 20, 2024",
@@ -37,9 +45,9 @@ export const galleryImages = [
   },
   {
     id: 3,
-    src: successImg,
+    src: image3,
     title: "Pitch Competition Finals",
-    description: "Top 10 startups presenting their ideas to investors",
+    description: "Top 10 startups presenting their ideas to investors. The event was a huge success with great feedback from the panel. All participants showed remarkable innovation and potential.",
     date: "April 10, 2024",
     participants: 120
   },
@@ -53,7 +61,7 @@ export const galleryImages = [
   },
   {
     id: 5,
-    src: loginBanner,
+    src: image4,
     title: "Networking Mixer",
     description: "Connect with fellow entrepreneurs and potential collaborators",
     date: "May 5, 2024",
@@ -61,7 +69,7 @@ export const galleryImages = [
   },
   {
     id: 6,
-    src: mentorIllustration,
+    src: image2,
     title: "Tech Talk Series",
     description: "Industry leaders sharing insights on emerging technologies",
     date: "March 30, 2024",
@@ -69,7 +77,7 @@ export const galleryImages = [
   },
   {
     id: 7,
-    src: successImg,
+    src: image4,
     title: "Funding Workshop",
     description: "Learn how to secure funding for your startup",
     date: "April 18, 2024",
@@ -77,7 +85,7 @@ export const galleryImages = [
   },
   {
     id: 8,
-    src: mentorIllustration2,
+    src: image3,
     title: "Demo Day 2024",
     description: "Startups showcase their products to potential investors",
     date: "May 20, 2024",

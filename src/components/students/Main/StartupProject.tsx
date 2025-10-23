@@ -5,10 +5,14 @@ import { FaLightbulb } from 'react-icons/fa6';
 
 interface StartupProjectProps {
   profile: Profile | null;
+  startupTitle?: string;
+  startupId?: string;
 }
 
-const StartupProject: React.FC<StartupProjectProps> = ({ profile }) => {
-  if (!profile?.startup_idea) {
+const StartupProject: React.FC<StartupProjectProps> = ({ profile, startupTitle, startupId }) => {
+  const hasProjectInfo = Boolean(startupTitle || profile?.startup_idea);
+
+  if (!hasProjectInfo) {
     return (
       <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-8">
         <div className="flex items-center gap-3 mb-4">
@@ -38,12 +42,22 @@ const StartupProject: React.FC<StartupProjectProps> = ({ profile }) => {
       </div>
 
       <div className="space-y-4">
+        {startupTitle && (
+          <div>
+            <h4 className="font-medium text-gray-900 mb-2">Linked Startup</h4>
+            <p className="text-gray-800 font-semibold">{startupTitle}</p>
+            {startupId && (
+              <p className="text-xs text-gray-500 mt-1">Startup ID: {startupId}</p>
+            )}
+          </div>
+        )}
+
         <div>
           <h4 className="font-medium text-gray-900 mb-2">Startup Idea</h4>
-          <p className="text-gray-700 leading-relaxed">{profile.startup_idea}</p>
+          <p className="text-gray-700 leading-relaxed">{profile?.startup_idea || 'No idea description provided yet.'}</p>
         </div>
 
-        {profile.skills && profile.skills.length > 0 && (
+        {profile?.skills && profile.skills.length > 0 && (
           <div>
             <h4 className="font-medium text-gray-900 mb-2">Skills</h4>
             <div className="flex flex-wrap gap-2">
@@ -64,7 +78,7 @@ const StartupProject: React.FC<StartupProjectProps> = ({ profile }) => {
             <FiEdit3 size={16} />
             Edit Project
           </button>
-          {profile.website && (
+          {profile?.website && (
             <a
               href={profile.website}
               target="_blank"

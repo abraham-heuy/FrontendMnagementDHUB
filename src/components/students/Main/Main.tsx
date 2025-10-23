@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { getDashboardStats } from '../../../lib/services/dashboard';
 import type { DashboardData, DashboardStats } from '../../../lib/types/dashboardTypes';
-import { FiRefreshCw, FiTrendingUp } from 'react-icons/fi';
+import { FiRefreshCw } from 'react-icons/fi';
 import RecentNotifications from './RecentNotifications';
 import UpcomingEvents from './UpcomingEvents';
 import RecentActivities from './RecentActivities';
@@ -243,7 +243,7 @@ const Main = () => {
               onClear={handleClearNotification}
               onClearAll={handleClearAllNotifications}
             />
-            
+
             <RecentActivities
               activities={dashboardData.currentStage?.activities}
               errors={errors}
@@ -252,7 +252,11 @@ const Main = () => {
           </div>
 
           {/* Startup Project */}
-          <StartupProject profile={dashboardData.profile} />
+          <StartupProject
+            profile={dashboardData.profile}
+            startupTitle={dashboardData.currentStage?.startupTitle}
+            startupId={dashboardData.currentStage?.id}
+          />
         </div>
 
         {/* Right Column - Events & Notifications */}

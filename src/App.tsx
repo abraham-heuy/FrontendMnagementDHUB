@@ -31,6 +31,7 @@ import LogoutMentor from "./components/Mentor/logout";
 import MentorProfileComponent from "./components/Mentor/profile";
 import MentorLogin from "./components/Mentor/auth";
 import MenteeManagement from "./components/Admin/mentees";
+import ForgotPassword from "./components/students/Auth/ForgotPassword";
 // Correct the import path and filename case if needed
 
 const App = () => {
@@ -43,6 +44,7 @@ const App = () => {
         <Route path="/apply/:eventId" element={<Application />} />
         <Route path="/apply" element={<Application />} />
         <Route path="/auth/*" element={<Auth />} />
+        <Route path="/auth/forgot-password" element={<ForgotPassword />} />
         <Route path="/admin/login" element={<LoginPage />} />
         <Route path="/mentor-login" element={<MentorLogin />} />
 

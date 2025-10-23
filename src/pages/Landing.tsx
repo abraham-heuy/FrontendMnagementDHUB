@@ -509,12 +509,12 @@ const Landing = () => {
                   transform: translateX(0);
                 }
                 100% {
-                  transform: translateX(-50%);
+                  transform: translateX(-33.333333%);
                 }
               }
               
               .gallery-scroll {
-                animation: smoothScroll 60s linear infinite;
+                animation: smoothScroll 90s linear infinite;
                 will-change: transform;
               }
               
@@ -540,7 +540,7 @@ const Landing = () => {
             <div className="absolute left-0 top-0 bottom-0 w-32 md:w-48 bg-gradient-to-r from-dark/40 via-dark/20 to-transparent z-10 pointer-events-none"></div>
             <div className="absolute right-0 top-0 bottom-0 w-32 md:w-48 bg-gradient-to-l from-dark/40 via-dark/20 to-transparent z-10 pointer-events-none"></div>
 
-            {/* Scrolling Container */}
+            {/* Scrolling Container - Triple set for seamless infinite loop */}
             <div className="flex gallery-scroll gap-4 py-4">
               {/* First set of images */}
               {galleryImages.map((image, index) => (
@@ -586,10 +586,50 @@ const Landing = () => {
                 </motion.div>
               ))}
 
-              {/* Duplicate set for seamless loop */}
+              {/* Second set for seamless loop */}
               {galleryImages.map((image) => (
                 <motion.div
                   key={`second-${image.id}`}
+                  onClick={() => setSelectedGalleryImage(image)}
+                  className="gallery-card relative flex-shrink-0 w-[240px] md:w-[280px] h-[200px] md:h-[240px] rounded-lg overflow-hidden shadow-md hover:shadow-2xl group bg-gray-100 cursor-pointer"
+                >
+                  <img
+                    src={image.src}
+                    alt={image.title}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+
+                  {/* Overlay with event details - shows on hover */}
+                  <div className="gallery-overlay absolute inset-0 bg-black/0 group-hover:bg-black/80 transition-all duration-400 flex flex-col justify-end p-4 opacity-0 group-hover:opacity-100">
+                    <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-400">
+                      <h3 className="text-white font-bold text-base mb-1.5 leading-tight">
+                        {image.title}
+                      </h3>
+                      <p className="text-white/90 text-xs mb-2 leading-relaxed line-clamp-2">
+                        {image.description}
+                      </p>
+                      <div className="flex items-center gap-3 text-xs text-white/90">
+                        <span className="flex items-center gap-1 bg-white/15 px-2 py-1 rounded-full backdrop-blur-sm">
+                          <FiCalendar className="w-3 h-3" />
+                          {image.date}
+                        </span>
+                        <span className="flex items-center gap-1 bg-white/15 px-2 py-1 rounded-full backdrop-blur-sm">
+                          <FaUserGraduate className="w-3 h-3" />
+                          {image.participants}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bottom Accent Bar */}
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-green-800 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-400 origin-left"></div>
+                </motion.div>
+              ))}
+
+              {/* Third set for extra smooth transition */}
+              {galleryImages.map((image) => (
+                <motion.div
+                  key={`third-${image.id}`}
                   onClick={() => setSelectedGalleryImage(image)}
                   className="gallery-card relative flex-shrink-0 w-[240px] md:w-[280px] h-[200px] md:h-[240px] rounded-lg overflow-hidden shadow-md hover:shadow-2xl group bg-gray-100 cursor-pointer"
                 >
