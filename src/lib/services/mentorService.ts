@@ -107,3 +107,26 @@ export const getAllAllocations = async (): Promise<MentorAllocation[]> => {
   if (Array.isArray(data)) return data;
   throw new Error("Unexpected response format for allocations");
 };
+export const getRecommendedStudents = async (mentorId: string): Promise<{
+  recommended: {
+    user: { id: string; fullName: string };
+    field?: string;
+  }[];
+  others: {
+    user: { id: string; fullName: string };
+    field?: string;
+  }[];
+}> => {
+  const res = await fetch(`${API_URL}/mentor/recommended/${mentorId}`, {
+    credentials: "include",
+  });
+  if (!res.ok) throw new Error("Failed to fetch recommended mentees");
+
+  const data = await res.json();
+
+  if (!data.recommended || !data.others) {
+    throw new Error("Unexpected response format for recommended mentees");
+  }
+
+  return data;
+};

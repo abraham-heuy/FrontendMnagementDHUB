@@ -4,8 +4,8 @@ import {
   getAllMentors,
   unassignStudentFromMentor,
   getAllAllocations,
+  getRecommendedStudents,
 } from "../../lib/services/mentorService";
-import type { MentorProfile, MentorAllocation } from "../../lib/types/mentor";
 import { listAllStudentProfiles } from "../../lib/services/Profilesservice";
 
 interface Student {
@@ -34,21 +34,25 @@ const MentorManagement: React.FC = () => {
   const [assigning, setAssigning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [recommended, setRecommended] = useState<Student[]>([]);
+  const [others, setOthers] = useState<Student[]>([]);
 
   const loadMentorsAndStudents = async () => {
     try {
       setLoading(true);
 
-      const mentorProfiles: MentorProfile[] = await getAllMentors();
+      const mentorProfiles = await getAllMentors();
       const studentProfiles = await listAllStudentProfiles();
-      const allocations: MentorAllocation[] = await getAllAllocations();
+      const allocations = await getAllAllocations();
 
+      // Normalize students
       const normalizedStudents: Student[] = studentProfiles.map((s) => ({
         id: s.user.id,
         name: s.user?.fullName ?? "Unnamed Student",
         field: s.field ?? "N/A",
       }));
 
+      // Map mentorId → students
       const mentorIdToStudents: Record<string, Student[]> = {};
       allocations.forEach((alloc) => {
         const mentorId = alloc.mentor.id;
@@ -61,16 +65,24 @@ const MentorManagement: React.FC = () => {
         });
       });
 
-      const normalizedMentors: Mentor[] = mentorProfiles.map((mentor) => ({
-        id: mentor.user?.id ?? mentor.id,
-        name: mentor.user?.fullName ?? "Unnamed Mentor",
-        specialization: mentor.specialization ?? "Not specified",
-        contact: mentor.contact ?? "N/A",
-        experience: mentor.experience ?? "No experience info",
-        recentProject: mentor.recentProject ?? "None",
-        assignedStudents:
-          mentorIdToStudents[mentor.user?.id ?? mentor.id] ?? [],
-      }));
+      // Normalize mentors
+      const normalizedMentors: Mentor[] = mentorProfiles.map((mentor) => {
+        const mentorId = mentor.user?.id ?? mentor.id;
+        return {
+          id: mentorId,
+          name: mentor.user?.fullName ?? "Unnamed Mentor",
+          specialization: mentor.specialization ?? "Not specified",
+          contact: mentor.contact ?? "N/A",
+          experience: mentor.experience ?? "No experience info",
+          recentProject: mentor.recentProject ?? "None",
+          assignedStudents: mentorIdToStudents[mentorId] ?? [],
+        };
+      });
+
+      // Sort mentors — optionally: show those with students first
+      normalizedMentors.sort(
+        (a, b) => b.assignedStudents.length - a.assignedStudents.length
+      );
 
       setMentors(normalizedMentors);
       setStudents(normalizedStudents);
@@ -104,6 +116,32 @@ const MentorManagement: React.FC = () => {
       setAssigning(false);
     }
   };
+  useEffect(() => {
+    if (!selectedMentor) return;
+  
+    const loadRecommended = async () => {
+      try {
+        const data = await getRecommendedStudents(selectedMentor.id);
+        const rec = data.recommended.map((m: any) => ({
+          id: m.user.id,
+          name: m.user.fullName,
+          field: m.field ?? "N/A",
+        }));
+        const oth = data.others.map((m: any) => ({
+          id: m.user.id,
+          name: m.user.fullName,
+          field: m.field ?? "N/A",
+        }));
+        setRecommended(rec);
+        setOthers(oth);
+      } catch (err: any) {
+        console.error("Error loading recommended mentees:", err);
+      }
+    };
+  
+    loadRecommended();
+  }, [selectedMentor]);
+  
 
   const handleUnassignStudent = async (allocationId?: string) => {
     if (!allocationId) return;
@@ -280,11 +318,28 @@ const MentorManagement: React.FC = () => {
                 className="w-full border rounded-lg p-2 text-sm focus:outline-none focus:ring focus:ring-sky-300"
               >
                 <option value="">Select a student</option>
-                {matchedStudents.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name} ({s.field})
-                  </option>
-                ))}
+
+                {/* Recommended mentees group */}
+                {recommended.length > 0 && (
+                  <optgroup label="⭐ Recommended">
+                    {recommended.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name} ({s.field})
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+
+                {/* Other mentees group */}
+                {others.length > 0 && (
+                  <optgroup label="Other Mentees">
+                    {others.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name} ({s.field})
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
               </select>
             </div>
 
