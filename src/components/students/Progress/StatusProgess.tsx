@@ -212,7 +212,7 @@ const StatusProgress = () => {
   }
 
   return (
-    <div className="h-full bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 p-4 md:p-6">
+    <div className="min-h-[90vh] bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 p-4 md:p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header Section */}
         <motion.div
@@ -427,7 +427,7 @@ const StatusProgress = () => {
             initial={{ opacity: 0, y: -20, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.9 }}
-            className={`fixed top-6 right-6 px-6 py-4 rounded-xl shadow-xl border-l-4 ${toast.type === "success"
+            className={`fixed top-20 right-6 px-6 py-4 rounded-xl shadow-xl border-l-4 ${toast.type === "success"
                 ? "bg-green-50 text-green-800 border-green-500"
                 : "bg-red-50 text-red-800 border-red-500"
               }`}
