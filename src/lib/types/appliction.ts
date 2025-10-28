@@ -38,16 +38,18 @@ export interface Application {
 }
 
 export interface ApplicationFormData {
-  regNo: string;
-  name: string;
+  first_name: string;
+  last_name: string;
+  surname?: string;
   email: string;
   phone: string;
-  teamMembers?: TeamMember[] | string;
+  regNo?: string;
   businessIdea: string;
   problemStatement: string;
   solution: string;
-  targetMarket: string;
-  revenueModel: string;
+  targetMarket?: string;
+  revenueModel?: string;
+  teamMembers?: string[];
 }
 
 

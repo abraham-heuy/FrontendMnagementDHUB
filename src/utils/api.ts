@@ -104,12 +104,64 @@ export const loginStudent = async (email: string, password: string) => {
     if (error instanceof TypeError) {
       throw new Error("Unable to connect. Please try again later.");
     }
+    // Re-throw other errors so callers can handle properly
+    throw error as Error;
   }
 }
 
+// ===== Student (Mentee) Profile APIs =====
+export interface MenteeProfile {
+  id?: string;
+  category?: "Student" | "Non-Student";
+  bio?: string;
+  skills?: string;
+  startup_idea?: string;
+  phone?: string;
+  registrationNumber?: string; // Student registration/ID number
+  institution?: string; // School/University name
+  field?: string; // Field of study / domain
+  course?: string;
+  yearOfStudy?: string | number;
+  linkedIn?: string;
+  website?: string;
+  resumeUrl?: string;
+}
 
- // login mentor:
- export const loginMentor = async (email: string, password: string) => {
+export const getMyMenteeProfile = async (): Promise<{ message: string; profile: MenteeProfile | null; canCreate?: boolean; }> => {
+  const res = await fetch(`${API_URL}/profile/me`, {
+    method: "GET",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+  });
+  if (!res.ok) {
+    // If unauthorized, bubble up to caller
+    const text = await res.text();
+    throw new Error(text || "Failed to fetch profile");
+  }
+  return res.json();
+};
+
+export const upsertMyMenteeProfile = async (payload: Partial<MenteeProfile>): Promise<{ message: string; profile: MenteeProfile; }> => {
+  const res = await fetch(`${API_URL}/profile/me`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  let errorMsg = "Unable to save profile";
+  if (!res.ok) {
+    try {
+      const err = await res.json();
+      errorMsg = err.message || errorMsg;
+    } catch { }
+    throw new Error(errorMsg);
+  }
+  return res.json();
+};
+
+
+// login mentor:
+export const loginMentor = async (email: string, password: string) => {
   try {
     const response = await fetch(`${API_URL}/auth/login`, {
       method: "POST",
@@ -121,7 +173,7 @@ export const loginStudent = async (email: string, password: string) => {
     let errorMsg = "Something went wrong. Please try again later.";
 
     if (!response.ok) {
-      //parse the backend error safely: Tip => {I have used general messaging to avoid user getting direct erroor msg from backend}
+      //parse the backend error safely
       try {
         const error = await response.json();
         errorMsg = error.message || "Invalid email or password.";
@@ -140,6 +192,8 @@ export const loginStudent = async (email: string, password: string) => {
     if (error instanceof TypeError) {
       throw new Error("Unable to connect. Please try again later.");
     }
+    // Re-throw other errors so callers can handle properly
+    throw error as Error;
   }
 }
 

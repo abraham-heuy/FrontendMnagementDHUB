@@ -17,7 +17,7 @@ const Logout: React.FC = () => {
     }catch(err: any){
       console.error("Logout error:", err.message)
     }finally{
-      navigate("/admin/login")
+      navigate("/auth");
     }
   };
 

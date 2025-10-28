@@ -2,10 +2,10 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-import InputField from "../InputField"; 
-import success from "../../assets/images/success.png";
+import success from "../../../assets/images/success.png";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/16/solid";
-import Modal from "../Modal";
+import InputField from "../../InputField";
+import Modal from "../../Modal";
 const apiURL= import.meta.env.VITE_API_URL;
 
 const ForgotPassword = () => {

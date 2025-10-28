@@ -1,9 +1,9 @@
-// src/components/Admin/AdminLogin.tsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { loginAdmin } from "../../utils/api";
+import { FaEnvelope, FaLock } from "react-icons/fa";
 
 interface AdminLoginProps {
   onLogin?: () => void;
@@ -12,9 +12,7 @@ interface AdminLoginProps {
 const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>(
-    {}
-  );
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const [generalError, setGeneralError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -24,7 +22,6 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
 
   const navigate = useNavigate();
 
-  // ✅ Validation
   const validate = () => {
     const newErrors: { email?: string; password?: string } = {};
     if (!email.trim()) newErrors.email = "Email is required.";
@@ -36,7 +33,6 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // ✅ Submit Login
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setGeneralError("");
@@ -50,14 +46,12 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
       navigate("/dashboard/admin/home");
     } catch (err: any) {
       console.error("Login error:", err);
-      //show general messaging from the specified cases I have defined in the service
       setGeneralError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ Reset password mock
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!resetEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(resetEmail)) return;
@@ -72,76 +66,93 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-slate-50">
-      <div className="w-full max-w-md bg-white shadow-lg rounded-2xl p-6">
-        <h2 className="text-2xl font-bold text-center text-green-700 mb-4">
-          Admin Login
-        </h2>
+    <div className="w-full">
+      {generalError && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-red-600 text-sm text-center">{generalError}</p>
+        </div>
+      )}
 
-        {generalError && (
-          <div className="text-red-500 text-sm mb-3 text-center">
-            {generalError}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Email */}
-          <div>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Email */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Email Address
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <FaEnvelope className="h-5 w-5 text-gray-400" />
+            </div>
             <input
               type="email"
-              placeholder="Email"
+              placeholder="admin@learnhub.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className={`w-full px-4 py-2 rounded-lg border ${errors.email ? "border-red-500" : "border-gray-300"
-                } focus:ring-2 focus:ring-green-500 outline-none`}
+              className={`w-full pl-10 pr-4 py-3 rounded-lg border ${errors.email ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-green-500"
+                } focus:ring-2 focus:ring-green-200 outline-none transition-colors duration-200`}
             />
-            {errors.email && (
-              <p className="text-red-500 text-xs mt-1">{errors.email}</p>
-            )}
           </div>
+          {errors.email && (
+            <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+          )}
+        </div>
 
-          {/* Password */}
+        {/* Password */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Password
+          </label>
           <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <FaLock className="h-5 w-5 text-gray-400" />
+            </div>
             <input
               type={showPassword ? "text" : "password"}
-              placeholder="Password"
+              placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className={`w-full px-4 py-2 rounded-lg border ${errors.password ? "border-red-500" : "border-gray-300"
-                } focus:ring-2 focus:ring-green-500 outline-none pr-10`}
+              className={`w-full pl-10 pr-12 py-3 rounded-lg border ${errors.password ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-green-500"
+                } focus:ring-2 focus:ring-green-200 outline-none transition-colors duration-200`}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors duration-200"
             >
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
-            {errors.password && (
-              <p className="text-red-500 text-xs mt-1">{errors.password}</p>
-            )}
           </div>
+          {errors.password && (
+            <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+          )}
+        </div>
 
-          {/* Forgot Password */}
-          <div className="text-right">
-            <button
-              type="button"
-              onClick={() => setForgotOpen(true)}
-              className="text-sm text-green-700 hover:underline"
-            >
-              Forgot Password?
-            </button>
-          </div>
-
+        {/* Forgot Password */}
+        <div className="text-right">
           <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-2 rounded-lg bg-yellow-400 hover:bg-yellow-500 text-white font-bold transition"
+            type="button"
+            onClick={() => setForgotOpen(true)}
+            className="text-sm text-green-600 hover:text-green-700 font-medium transition-colors duration-200"
           >
-            {loading ? "Logging in..." : "Login"}
+            Forgot Password?
           </button>
-        </form>
-      </div>
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-green-800 hover:bg-green-900 disabled:bg-gray-100 cursor-pointer text-white py-3 px-4 rounded-lg font-semibold transition-colors duration-200 focus:ring-2 focus:ring-green-200 focus:ring-offset-2"
+        >
+          {loading ? (
+            <div className="flex items-center justify-center">
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+              Logging in...
+            </div>
+          ) : (
+            "Login"
+          )}
+        </button>
+      </form>
 
       {/* Forgot Password Modal */}
       <AnimatePresence>
@@ -150,41 +161,51 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center"
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           >
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
-              className="bg-white p-6 rounded-xl shadow-lg w-full max-w-sm"
+              className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6"
             >
               <h3 className="text-lg font-semibold text-gray-800 mb-3">
                 Reset Password
               </h3>
               {resetSent ? (
-                <p className="text-green-600 text-sm">
-                  A reset link will be sent to your email soon!
-                </p>
+                <div className="text-center py-4">
+                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                  <p className="text-green-600 text-sm">
+                    A reset link will be sent to your email soon!
+                  </p>
+                </div>
               ) : (
-                <form onSubmit={handleResetPassword} className="space-y-3">
-                  <input
-                    type="email"
-                    placeholder="Enter your account email"
-                    value={resetEmail}
-                    onChange={(e) => setResetEmail(e.target.value)}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 outline-none"
-                  />
-                  <div className="flex justify-end gap-2">
+                <form onSubmit={handleResetPassword} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      placeholder="Enter your account email"
+                      value={resetEmail}
+                      onChange={(e) => setResetEmail(e.target.value)}
+                      className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-200 focus:border-green-500 outline-none transition-colors duration-200"
+                    />
+                  </div>
+                  <div className="flex justify-end gap-3">
                     <button
                       type="button"
                       onClick={() => setForgotOpen(false)}
-                      className="px-3 py-1 text-sm border rounded-lg text-gray-600 hover:bg-gray-100"
+                      className="px-4 py-2 text-sm border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors duration-200"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
-                      className="px-3 py-1 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700"
+                      className="px-4 py-2 text-sm bg-green-800 text-white rounded-lg hover:bg-green-900 transition-colors duration-200"
                     >
                       Send Reset Link
                     </button>

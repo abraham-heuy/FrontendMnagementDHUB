@@ -70,7 +70,7 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats, errors }) => {
   const getColorClasses = (color: string) => {
     const colors = {
       blue: 'bg-blue-100 text-blue-600 border-blue-200',
-      green: 'bg-green-100 text-green-600 border-green-200',
+      green: 'bg-green-50 text-green-600 border-green-200',
       orange: 'bg-orange-100 text-orange-600 border-orange-200',
       purple: 'bg-purple-100 text-purple-600 border-purple-200',
       indigo: 'bg-indigo-100 text-indigo-600 border-indigo-200',

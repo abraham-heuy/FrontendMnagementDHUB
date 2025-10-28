@@ -31,6 +31,7 @@ import LogoutMentor from "./components/Mentor/logout";
 import MentorProfileComponent from "./components/Mentor/profile";
 import MentorLogin from "./components/Mentor/auth";
 import MenteeManagement from "./components/Admin/mentees";
+import ForgotPassword from "./components/students/Auth/ForgotPassword";
 // Correct the import path and filename case if needed
 
 const App = () => {
@@ -41,9 +42,11 @@ const App = () => {
         <Route path="/" element={<Landing />} />
         <Route path="/about" element={<About />} />
         <Route path="/apply/:eventId" element={<Application />} />
+        <Route path="/apply" element={<Application />} />
         <Route path="/auth/*" element={<Auth />} />
+        <Route path="/auth/forgot-password" element={<ForgotPassword />} />
         <Route path="/admin/login" element={<LoginPage />} />
-        <Route path ="/mentor-login" element ={<MentorLogin/>}/>
+        <Route path="/mentor-login" element={<MentorLogin />} />
 
         {/* Admin routes (protected) */}
         <Route element={<ProtectedRoute requiredRole="admin" />}>
@@ -78,14 +81,14 @@ const App = () => {
 
         {/* Mentor routes */}
         <Route element={<ProtectedRoute requiredRole="mentor" />}>
-           <Route path="dashboard/mentor/*" element={<MentorPage />}>
-              <Route index element={<Navigate to="home" replace/>}/>
-              <Route path="home" element={<MentorHome />} />
-              <Route path="notifications" element={<MentorNotifications />}/>
-              <Route path="profile" element={<MentorProfileComponent />}/>
-              <Route path="logout" element={<LogoutMentor />}/>
-              <Route path="*" element={<NotFound />} />
-           </Route>
+          <Route path="dashboard/mentor/*" element={<MentorPage />}>
+            <Route index element={<Navigate to="home" replace />} />
+            <Route path="home" element={<MentorHome />} />
+            <Route path="notifications" element={<MentorNotifications />} />
+            <Route path="profile" element={<MentorProfileComponent />} />
+            <Route path="logout" element={<LogoutMentor />} />
+            <Route path="*" element={<NotFound />} />
+          </Route>
         </Route>
       </Routes>
 

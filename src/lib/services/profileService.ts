@@ -4,16 +4,36 @@ const apiURL = import.meta.env.VITE_API_URL || "http://localhost:3000/api/v1";
 
 export type StudentProfile = {
   id?: string;
+  category?: "Student" | "Non-Student";
   bio?: string;
   skills?: string[];
   startup_idea?: string;
   phone?: string;
+  registrationNumber?: string;
   institution?: string;
+  field?: string;
   course?: string;
   yearOfStudy?: string;
   linkedIn?: string;
   website?: string;
   resumeUrl?: string;
+  created_at?: string;
+  updated_at?: string;
+  user?: {
+    id: string;
+    email: string;
+    fullName: string;
+    regNumber?: string;
+    isActive: boolean;
+    currentProject?: string;
+    created_at: string;
+    updated_at: string;
+    role?: {
+      id: number;
+      name: string;
+      description?: string;
+    };
+  };
 };
 
 export const profileService = {
@@ -30,7 +50,10 @@ export const profileService = {
     if (!response.ok) {
       throw new Error("Failed to fetch profile");
     }
-    return response.json();
+
+    const data = await response.json();
+    // Backend returns { message, profile, canCreate? }
+    return data.profile || null;
   },
 
   upsertMyProfile: async (profile: StudentProfile): Promise<StudentProfile> => {
@@ -45,7 +68,9 @@ export const profileService = {
       throw new Error("Failed to save profile");
     }
 
-    return response.json();
+    const data = await response.json();
+    // Backend returns { message, profile }
+    return data.profile;
   },
 };
 

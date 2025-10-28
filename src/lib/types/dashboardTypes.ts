@@ -16,6 +16,10 @@ export interface Activity {
 
 export interface CurrentStage {
   id: string;
+  // Optional linkage to the mentee's startup
+  startupTitle?: string;
+  // The current substage name if available
+  subStageName?: string;
   stageName: string;
   status: string;
   progressPercent: number;
